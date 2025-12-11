@@ -12,6 +12,8 @@ import {
   isEvmTestnetChainId,
 } from 'sushi/evm'
 import { KvmChainId } from 'sushi/kvm'
+import { MvmChainId } from 'sushi/mvm'
+import { TvmChainId } from 'sushi/tvm'
 
 export const NonStandardChainId = {
   APTOS: 'aptos',
@@ -161,10 +163,10 @@ export const isSupportedChainId = (
 
 const UNSORTED_SUPPORTED_NETWORKS = [
   ...SUPPORTED_CHAIN_IDS,
-  NonStandardChainId.APTOS,
-  NonStandardChainId.TRON,
-  NonStandardChainId.STELLAR,
+  MvmChainId.APTOS,
+  TvmChainId.TRON,
   KvmChainId.KADENA,
+  NonStandardChainId.STELLAR,
 ].filter(
   (c) => !DISABLED_CHAIN_IDS.includes(c as (typeof DISABLED_CHAIN_IDS)[number]),
 )
@@ -182,10 +184,10 @@ export const SUPPORTED_NETWORKS = Array.from(
 
 const UNSORTED_POOL_SUPPORTED_NETWORKS = [
   ...PoolChainIds,
-  NonStandardChainId.APTOS,
-  NonStandardChainId.TRON,
-  NonStandardChainId.STELLAR,
+  MvmChainId.APTOS,
+  TvmChainId.TRON,
   KvmChainId.KADENA,
+  NonStandardChainId.STELLAR,
 ].filter(
   (c) => !DISABLED_CHAIN_IDS.includes(c as (typeof DISABLED_CHAIN_IDS)[number]),
 )
