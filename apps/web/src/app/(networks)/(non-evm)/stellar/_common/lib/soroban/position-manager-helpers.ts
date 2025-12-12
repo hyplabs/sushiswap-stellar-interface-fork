@@ -346,7 +346,7 @@ export async function increaseLiquidity({
     }
 
     // Sign auth entries for nested authorization (PM -> Pool -> Token transfers)
-    // This is required because the user is not the direct invoker of pool.mint
+    // This is required because the user is not the direct invoker of pool.increase_liquidity
     const transactionXdr = await signAuthEntriesAndGetXdr(
       assembledTransaction as unknown as AssembledTransactionLike,
       sourceAccount,
