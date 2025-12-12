@@ -13,23 +13,8 @@ import {
 } from 'sushi/evm'
 import { KvmChainId } from 'sushi/kvm'
 import { MvmChainId } from 'sushi/mvm'
+import { StellarChainId } from 'sushi/stellar'
 import { TvmChainId } from 'sushi/tvm'
-
-export const NonStandardChainId = {
-  APTOS: 'aptos',
-  STELLAR: 'stellar',
-  TRON: 'tron',
-} as const
-
-export type NonStandardChainId =
-  (typeof NonStandardChainId)[keyof typeof NonStandardChainId]
-
-export const isNonStandardChainId = (
-  nonStandardChainId: string,
-): nonStandardChainId is NonStandardChainId =>
-  Object.values(NonStandardChainId).includes(
-    nonStandardChainId as NonStandardChainId,
-  )
 
 export const UI_FEE_BIPS = 35
 export const UI_FEE_PERCENT = UI_FEE_BIPS / 100
@@ -56,10 +41,7 @@ export const BLADE_SUPPORTED_NETWORKS = BLADE_SUPPORTED_CHAIN_IDS.filter(
   (c) => !DISABLED_CHAIN_IDS.includes(c as (typeof DISABLED_CHAIN_IDS)[number]),
 )
 
-export const NEW_CHAIN_IDS = [
-  EvmChainId.MONAD,
-  NonStandardChainId.STELLAR,
-] as const
+export const NEW_CHAIN_IDS = [EvmChainId.MONAD, StellarChainId.STELLAR] as const
 
 export const PREFERRED_CHAINID_ORDER = [
   ...NEW_CHAIN_IDS,
@@ -166,7 +148,7 @@ const UNSORTED_SUPPORTED_NETWORKS = [
   MvmChainId.APTOS,
   TvmChainId.TRON,
   KvmChainId.KADENA,
-  NonStandardChainId.STELLAR,
+  StellarChainId.STELLAR,
 ].filter(
   (c) => !DISABLED_CHAIN_IDS.includes(c as (typeof DISABLED_CHAIN_IDS)[number]),
 )
@@ -187,7 +169,7 @@ const UNSORTED_POOL_SUPPORTED_NETWORKS = [
   MvmChainId.APTOS,
   TvmChainId.TRON,
   KvmChainId.KADENA,
-  NonStandardChainId.STELLAR,
+  StellarChainId.STELLAR,
 ].filter(
   (c) => !DISABLED_CHAIN_IDS.includes(c as (typeof DISABLED_CHAIN_IDS)[number]),
 )

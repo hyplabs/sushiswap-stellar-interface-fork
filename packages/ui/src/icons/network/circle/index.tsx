@@ -152,6 +152,6 @@ export const NETWORK_CIRCLE_ICON: Partial<
   [ChainId.MONAD]: MonadCircle,
   [ChainId.APTOS]: AptosCircle,
   [ChainId.TRON]: TronCircle,
-  stellar: StellarCircle,
+  [ChainId.STELLAR]: StellarCircle,
   [ChainId.KADENA]: KadenaCircle,
 }
