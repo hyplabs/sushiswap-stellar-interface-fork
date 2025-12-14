@@ -1,6 +1,5 @@
 'use client'
 
-import { create } from 'node:domain'
 import { Button, FormSection, SelectIcon, TextField } from '@sushiswap/ui'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
