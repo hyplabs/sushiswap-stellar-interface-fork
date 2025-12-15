@@ -19,7 +19,7 @@ export function useTopPools() {
     ? Object.keys(tokens).toSorted().join(',')
     : 'no-tokens'
   return useQuery<TopPool[]>({
-    queryKey: ['pools', { chainId: 'stellar' }, tokenKey],
+    queryKey: ['pools', { chainId: ChainId.STELLAR }, tokenKey],
     queryFn: async () => {
       if (!tokens) {
         return []
@@ -29,11 +29,11 @@ export function useTopPools() {
       })
       const topPoolsWithTokens = topPools.map((pool) => ({
         ...pool,
-        token0: tokens[pool.token0Address]!,
-        token1: tokens[pool.token1Address]!,
+        token0: tokens[pool.token0Address],
+        token1: tokens[pool.token1Address],
       }))
-      return topPoolsWithTokens
+      return topPoolsWithTokens.filter((pool) => pool.token0 && pool.token1)
     },
-    enabled: !isLoadingTokens && !isPendingTokens,
+    enabled: !!tokens && !isLoadingTokens && !isPendingTokens,
   })
 }

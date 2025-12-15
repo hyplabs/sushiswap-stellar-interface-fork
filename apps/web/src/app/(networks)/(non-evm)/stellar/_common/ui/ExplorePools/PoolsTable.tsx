@@ -51,7 +51,7 @@ export const PoolsTable = () => {
     error,
     refetch,
   } = useAllPools()
-  const isLoading = isLoadingTopPools || isLoadingAllPools || isFetchingAllPools
+  const isLoading = isLoadingTopPools || isLoadingAllPools
 
   const { tokenSymbols } = usePoolFilters()
 

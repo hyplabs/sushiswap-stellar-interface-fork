@@ -10,13 +10,8 @@ export const useDayVolumeUSD = ({ pairAddress }: { pairAddress?: string }) => {
       if (!pairAddress || !topPools) {
         return '0'
       }
-      try {
-        const topPool = topPools.find((pool) => pool.address === pairAddress)
-        return topPool?.volumeUSD1d?.toString() ?? '0'
-      } catch (e) {
-        console.log(e)
-        return '0'
-      }
+      const topPool = topPools.find((pool) => pool.address === pairAddress)
+      return topPool?.volumeUSD1d?.toString() ?? '0'
     },
     placeholderData: keepPreviousData,
     enabled: !!pairAddress && !!topPools && !isLoading && !isPending,

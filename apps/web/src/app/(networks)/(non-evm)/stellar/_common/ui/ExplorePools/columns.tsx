@@ -42,10 +42,9 @@ export const NAME_COLUMN: ColumnDef<PoolData, unknown> = {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="bg-gray-200 text-gray-700 dark:bg-slate-800 dark:text-slate-300 text-[10px] px-2 rounded-full">
-                    {formatNumber(
-                      (row.tag === 'topPool' ? row.swapFee : row.fee) * 100,
+                    {formatPercent(
+                      row.tag === 'topPool' ? row.swapFee : row.fee / 1000000,
                     )}
-                    %
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -99,7 +98,8 @@ export const TVL_COLUMN: ColumnDef<PoolData, unknown> = {
       : 0,
   cell: (props) =>
     props.row.original.tag === 'poolInfo' ||
-    formatUSD(props.row.original.liquidityUSD).includes('NaN')
+    Number.isNaN(props.row.original.liquidityUSD) ||
+    !Number.isFinite(props.row.original.liquidityUSD)
       ? '$0.00'
       : formatUSD(props.row.original.liquidityUSD),
   meta: {
@@ -119,7 +119,8 @@ export const VOLUME_1D_COLUMN: ColumnDef<PoolData, unknown> = {
       : 0,
   cell: (props) =>
     props.row.original.tag === 'poolInfo' ||
-    formatUSD(props.row.original.volumeUSD1d).includes('NaN')
+    Number.isNaN(props.row.original.volumeUSD1d) ||
+    !Number.isFinite(props.row.original.volumeUSD1d)
       ? '$0.00'
       : formatUSD(props.row.original.volumeUSD1d),
   meta: {
@@ -139,7 +140,8 @@ export const FEES_1D_COLUMN: ColumnDef<PoolData, unknown> = {
       : 0,
   cell: (props) =>
     props.row.original.tag === 'poolInfo' ||
-    formatUSD(props.row.original.feeUSD1d).includes('NaN')
+    Number.isNaN(props.row.original.feeUSD1d) ||
+    !Number.isFinite(props.row.original.feeUSD1d)
       ? '$0.00'
       : formatUSD(props.row.original.feeUSD1d),
   meta: {
@@ -170,6 +172,10 @@ export const APR_COLUMN: ColumnDef<PoolData, unknown> = {
   id: 'totalApr1d',
   header: 'APR',
   accessorFn: (row) => (row.tag === 'topPool' ? row.totalApr1d : 0),
+  sortingFn: ({ original: rowA }, { original: rowB }) =>
+    rowA.tag === 'topPool' && rowB.tag === 'topPool'
+      ? rowA.totalApr1d - rowB.totalApr1d
+      : 0,
   cell: (props) =>
     formatPercent(
       props.row.original.tag === 'topPool' ? props.row.original.totalApr1d : 0,

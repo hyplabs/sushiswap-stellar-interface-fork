@@ -769,7 +769,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                                   <SkeletonText />
                                 ) : (
                                   `$ ${formatNumber(
-                                    Number(usdPriceToken0 ?? '0') *
+                                    (usdPriceToken0 ?? 0) *
                                       (Number(amount0) || 0),
                                     2,
                                   )}`
@@ -847,7 +847,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                                   <SkeletonText />
                                 ) : (
                                   `$ ${formatNumber(
-                                    Number(usdPriceToken1 ?? '0') *
+                                    (usdPriceToken1 ?? 0) *
                                       (Number(amount1) || 0),
                                     2,
                                   )}`

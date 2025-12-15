@@ -28,12 +28,11 @@ export const usePoolInfo = (address: string | null) => {
       }
       return {
         ...poolInfo,
-        topPoolData: topPoolData?.find(
-          (pool) => pool.address.toLowerCase() === address.toLowerCase(),
-        ),
+        topPoolData: topPoolData.find((pool) => pool.address === address),
       }
     },
-    enabled: !!address && !isTopPoolsLoading && !isTopPoolsPending,
+    enabled:
+      !!address && !!topPoolData && !isTopPoolsLoading && !isTopPoolsPending,
     staleTime: ms('10s'),
     retry: 3, // Retry up to 3 times on RPC failures
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
