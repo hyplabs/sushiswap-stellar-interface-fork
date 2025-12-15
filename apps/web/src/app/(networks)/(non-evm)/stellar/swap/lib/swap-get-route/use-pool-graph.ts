@@ -125,7 +125,7 @@ export function usePoolGraph() {
             // Skip uninitialized pools (sqrt_price_x96 = 0)
             if (pool.sqrtPriceX96 === 0n) {
               console.log(`⚠️ Skipping uninitialized pool: ${pool.poolAddress}`)
-              return
+              continue
             }
 
             // Skip pools with zero liquidity
@@ -133,7 +133,7 @@ export function usePoolGraph() {
               console.log(
                 `⚠️ Skipping pool with zero liquidity: ${pool.poolAddress}`,
               )
-              return
+              continue
             }
 
             // Calculate approximate reserves from liquidity and sqrt price
