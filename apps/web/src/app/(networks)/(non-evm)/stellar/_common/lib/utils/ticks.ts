@@ -4,7 +4,10 @@ export const FEE_TIERS = [
   { value: 10000, label: '1%', description: 'Best for volatile pairs' },
 ] as const
 
-export const TICK_SPACINGS: Record<number, number> = {
+export const TICK_SPACINGS: Record<
+  (typeof FEE_TIERS)[number]['value'],
+  number
+> = {
   500: 10,
   3000: 60,
   10000: 200,
