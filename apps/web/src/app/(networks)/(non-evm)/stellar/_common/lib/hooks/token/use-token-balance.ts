@@ -27,7 +27,13 @@ export const useTokenBalanceFromToken = (
   token: Token | null,
 ) => {
   return useQuery({
-    queryKey: ['stellar', 'token', 'balanceFromToken', address, token?.contract],
+    queryKey: [
+      'stellar',
+      'token',
+      'balanceFromToken',
+      address,
+      token?.contract,
+    ],
     queryFn: async () => {
       if (!address || !token) return null
       return await getTokenBalanceFromToken(address, token)
