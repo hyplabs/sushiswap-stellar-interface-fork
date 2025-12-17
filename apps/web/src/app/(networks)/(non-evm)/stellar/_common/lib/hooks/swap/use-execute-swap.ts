@@ -103,8 +103,18 @@ export const useExecuteSwap = () => {
         timestamp: Date.now(),
       })
 
+      // Invalidate all token balance queries to update balances after swap
       queryClient.invalidateQueries({
         queryKey: ['token', 'balance'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['token', 'balanceFromToken'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['token', 'balances'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['token', 'balancesMap'],
       })
       queryClient.invalidateQueries({
         queryKey: ['stellar', 'positions'],
@@ -215,8 +225,18 @@ export const useExecuteMultiHopSwap = () => {
         timestamp: Date.now(),
       })
 
+      // Invalidate all token balance queries to update balances after swap
       queryClient.invalidateQueries({
         queryKey: ['token', 'balance'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['token', 'balanceFromToken'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['token', 'balances'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['token', 'balancesMap'],
       })
       queryClient.invalidateQueries({
         queryKey: ['stellar', 'positions'],
