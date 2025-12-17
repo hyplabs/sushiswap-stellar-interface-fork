@@ -10,11 +10,7 @@ import {
   useExecuteMultiHopSwap,
   useExecuteSwap,
 } from '~stellar/_common/lib/hooks/swap'
-import {
-  useNeedsTrustline,
-  useNeedsTrustlines,
-} from '~stellar/_common/lib/hooks/trustline/use-trustline'
-import type { Token } from '~stellar/_common/lib/types/token.type'
+import { useNeedsTrustline } from '~stellar/_common/lib/hooks/trustline/use-trustline'
 import { parseSlippageTolerance } from '~stellar/_common/lib/utils/error-helpers'
 import { requiresPriceImpactConfirmation } from '~stellar/_common/lib/utils/warning-severity'
 import { ConnectWalletButton } from '~stellar/_common/ui/ConnectWallet/ConnectWalletButton'
@@ -76,16 +72,6 @@ export const SimpleSwapExecuteButton = () => {
     amountIn,
     enabled: amountIn > 0n,
   })
-
-  // Get intermediate tokens from multi-hop route (tokens between input and output)
-  // For route A → B → C, intermediate tokens would be [B]
-  const intermediateTokens = useMemo((): Token[] => {
-    if (!route?.tokens || route.tokens.length <= 2) {
-      return []
-    }
-    // Exclude first (input) and last (output) tokens
-    return route.tokens.slice(1, -1)
-  }, [route?.tokens])
 
   const showPriceImpactWarning = requiresPriceImpactConfirmation(
     priceImpact || undefined,
@@ -188,17 +174,6 @@ export const SimpleSwapExecuteButton = () => {
     ]
   }, [amountIn, token0])
 
-  // Check all intermediate tokens for trustlines
-  const {
-    needsAnyTrustline: needsAnyIntermediateTrustline,
-    results: intermediateTrustlineResults,
-  } = useNeedsTrustlines(intermediateTokens)
-
-  // Check if any trustlines are needed (block swap until created)
-  // Note: Only check output token and intermediate tokens - user already has input token
-  const needsAnyTrustline =
-    needsToken1Trustline || needsAnyIntermediateTrustline
-
   // Check if we have a route but output is 0 (likely due to amount being too small)
   // This happens when the amount is so small that integer division rounds the output to 0
   const hasRouteButZeroOutput = useMemo(() => {
@@ -220,7 +195,7 @@ export const SimpleSwapExecuteButton = () => {
     outputAmount === 0n ||
     executeSwap.isPending ||
     executeMultiHopSwap.isPending ||
-    needsAnyTrustline ||
+    needsToken1Trustline ||
     (showPriceImpactWarning && !checked)
 
   // Determine button text
@@ -228,7 +203,7 @@ export const SimpleSwapExecuteButton = () => {
     if (executeSwap.isPending || executeMultiHopSwap.isPending) {
       return 'Executing Swap...'
     }
-    if (needsAnyTrustline) {
+    if (needsToken1Trustline) {
       return 'Create trustline first'
     }
     if (showPriceImpactWarning && !checked) {
@@ -248,7 +223,7 @@ export const SimpleSwapExecuteButton = () => {
   }, [
     executeSwap.isPending,
     executeMultiHopSwap.isPending,
-    needsAnyTrustline,
+    needsToken1Trustline,
     showPriceImpactWarning,
     checked,
     hasRouteButZeroOutput,
@@ -287,22 +262,6 @@ export const SimpleSwapExecuteButton = () => {
           className="mt-4"
         />
       )}
-      {intermediateTokens.map((token, index) => {
-        const needsTrustline =
-          intermediateTrustlineResults[index]?.needsTrustline
-        if (needsTrustline && token?.issuer) {
-          return (
-            <TrustlineWarning
-              key={`intermediate-${index}-${token.code}-${token.issuer}`}
-              assetCode={token.code}
-              assetIssuer={token.issuer}
-              direction="output"
-              className="mt-2"
-            />
-          )
-        }
-        return null
-      })}
       {showSlippageWarning && <SlippageWarning className="mt-4" />}
       {showPriceImpactWarning && (
         <PriceImpactWarning

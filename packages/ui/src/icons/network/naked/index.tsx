@@ -153,5 +153,5 @@ export const NETWORK_NAKED_ICON: Partial<
   [ChainId.APTOS]: AptosNaked,
   [ChainId.TRON]: TronNaked,
   [ChainId.KADENA]: KadenaNaked,
-  stellar: StellarNaked,
+  [ChainId.STELLAR]: StellarNaked,
 }
