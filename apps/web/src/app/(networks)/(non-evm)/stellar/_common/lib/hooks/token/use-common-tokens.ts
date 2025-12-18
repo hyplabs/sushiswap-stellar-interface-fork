@@ -116,7 +116,7 @@ const fetchCommonTokensQueryFn = async (): Promise<Record<string, Token>> => {
 
 export function useCommonTokens() {
   return useQuery({
-    queryKey: ['common-tokens'],
+    queryKey: ['stellar', 'common-tokens'],
     queryFn: () => fetchCommonTokensQueryFn(),
     placeholderData: keepPreviousData,
     staleTime: 3600000,

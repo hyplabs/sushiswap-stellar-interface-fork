@@ -11,7 +11,7 @@ export interface ApproveTokenParams {
 
 export const useApproveToken = () => {
   return useMutation({
-    mutationKey: ['token', 'approve'],
+    mutationKey: ['stellar', 'token', 'approve'],
     mutationFn: async (params: ApproveTokenParams) => {
       return await approveToken(
         params.spender,

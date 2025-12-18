@@ -80,6 +80,7 @@ export const useAddLiquidity = () => {
 
       queryClient.invalidateQueries({
         queryKey: [
+          'stellar',
           'pool',
           'balances',
           variables.poolAddress,
@@ -88,7 +89,7 @@ export const useAddLiquidity = () => {
       })
 
       queryClient.invalidateQueries({
-        queryKey: ['pool', 'info', variables.poolAddress],
+        queryKey: ['stellar', 'pool', 'info', variables.poolAddress],
       })
 
       queryClient.invalidateQueries({

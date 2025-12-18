@@ -25,7 +25,7 @@ export const useExecuteSwapExactInputMulti = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: ['router', 'executeSwapExactInputMulti'],
+    mutationKey: ['stellar', 'router', 'executeSwapExactInputMulti'],
     mutationFn: async (params: MultiHopSwapExactInputParams) => {
       const swapService = new SwapService()
 
