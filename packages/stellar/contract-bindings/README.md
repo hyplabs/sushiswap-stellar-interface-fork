@@ -39,7 +39,7 @@ For contracts such as the pools and tokens with multiple deployed instances that
 #### Limitations
 
 - A binding can only be generated for a deployed contract with this method though there are likely other tools to generate it directly from a WASM file.
-- The TypeScript binding includes `export const networks` by default which we do not use as we prefer using the `CONTRACT_ADDRESSES` and `NETWORK_CONFIG` from `apps/web/src/app/(networks)/(non-evm)/stellar/_common/lib/soroban/contract-addresses.ts` so we can delete this exported const from `./<name_for_new_contract_binding_sub_directory>/src/index.ts` to reduce confusion.
+- The TypeScript binding includes `export const networks` by default which we do not use as we prefer using the `contractAddresses` and `NETWORK_CONFIG` from `apps/web/src/app/(networks)/(non-evm)/stellar/_common/lib/soroban/contracts/index.ts` so we can delete this exported const from `./<name_for_new_contract_binding_sub_directory>/src/index.ts` to reduce confusion.
 - We can also delete unused imports generated in `./<name_for_new_contract_binding_sub_directory>/src/index.ts` to reduce clutter.
 
 ### Consuming Bindings

@@ -98,7 +98,7 @@ const convertPoolDataToVertex = (pools: PoolData[]): Vertex[] => {
     // Virtual reserves for this liquidity position
     // reserve0 = L * 2^96 / sqrtPriceX96, reserve1 = L * sqrtPriceX96 / 2^96
     // We keep calculations in BigInt to avoid precision loss
-    const Q96 = BigInt(2 ** 96)
+    const Q96 = 1n << 96n
     const reserve0 =
       pool.sqrtPriceX96 > 0n
         ? (pool.liquidity * Q96) / pool.sqrtPriceX96
@@ -178,7 +178,7 @@ function useBasePoolGraph() {
   const baseTokens = staticTokens.map((token) => token.contract)
 
   return useQuery<PoolGraphData>({
-    queryKey: ['stellar', 'base-pool-graph', baseTokens.length],
+    queryKey: ['stellar', 'base-pool-graph', [...baseTokens].sort().join(',')],
     queryFn: async () => {
       // Store arrays of vertices per token pair to handle multiple fee tiers
       const vertices = new Map<string, Vertex[]>()
@@ -349,7 +349,12 @@ async function augmentPoolGraph({
 export function usePoolGraph({
   additionalTokens = [],
 }: UsePoolGraphParams = {}) {
-  const { data: baseGraph, isLoading: isLoadingBase } = useBasePoolGraph()
+  const {
+    data: baseGraph,
+    isLoading: isLoadingBase,
+    isError: isErrorBase,
+    error: baseGraphError,
+  } = useBasePoolGraph()
 
   // Filter additional tokens to only those not already in base
   const newTokens = useMemo(() => {
@@ -366,7 +371,11 @@ export function usePoolGraph({
 
   // Augment the base graph with additional tokens (only if needed)
   const augmentedQuery = useQuery({
-    queryKey: ['stellar', 'augmented-pool-graph', newTokens.sort().join(',')],
+    queryKey: [
+      'stellar',
+      'augmented-pool-graph',
+      [...newTokens].sort().join(','),
+    ],
     queryFn: async () => {
       if (!baseGraph) {
         return {
@@ -399,7 +408,7 @@ export function usePoolGraph({
   return {
     data,
     isLoading,
-    isError: augmentedQuery.isError,
-    error: augmentedQuery.error,
+    isError: augmentedQuery.isError || isErrorBase,
+    error: augmentedQuery.error ?? baseGraphError,
   }
 }
