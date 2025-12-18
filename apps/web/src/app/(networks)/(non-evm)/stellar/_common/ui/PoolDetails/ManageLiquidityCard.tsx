@@ -46,79 +46,11 @@ import { useStellarWallet } from '~stellar/providers'
 import { ConnectWalletButton } from '../ConnectWallet/ConnectWalletButton'
 import { TickRangeSelector } from '../TickRangeSelector/TickRangeSelector.tsx'
 import { TrustlineWarning } from '../Trustline/TrustlineWarning'
+import { CurrencyInput } from '../currency/currency-input/currency-input'
 import TokenSelector from '../token-selector/token-selector'
 
 interface ManageLiquidityCardProps {
   pool: PoolInfo
-}
-
-// Component to display balance for zap token
-const ZapTokenBalance = ({
-  token,
-  address,
-}: {
-  token: Token
-  address: string | null
-}) => {
-  const { data: balance } = useTokenBalanceFromToken(address, token)
-  if (!balance) return <span className="text-xs text-muted-foreground">-</span>
-  return (
-    <span className="text-xs text-muted-foreground">
-      {formatTokenAmount(balance, token.decimals)}
-    </span>
-  )
-}
-
-// Component for Max button that handles both pool tokens and external tokens
-const ZapMaxButton = ({
-  token,
-  pool,
-  balances,
-  address,
-  onSetAmount,
-}: {
-  token: Token
-  pool: PoolInfo
-  balances:
-    | { token0: { amount: string }; token1: { amount: string } }
-    | null
-    | undefined
-  address: string | null
-  onSetAmount: (amount: string) => void
-}) => {
-  const { data: balance } = useTokenBalanceFromToken(address, token)
-
-  const handleMax = () => {
-    if (!token) return
-
-    // Check if it's a pool token first (faster)
-    if (token.contract === pool.token0.contract && balances?.token0.amount) {
-      onSetAmount(
-        formatTokenAmount(BigInt(balances.token0.amount), token.decimals),
-      )
-    } else if (
-      token.contract === pool.token1.contract &&
-      balances?.token1.amount
-    ) {
-      onSetAmount(
-        formatTokenAmount(BigInt(balances.token1.amount), token.decimals),
-      )
-    } else if (balance) {
-      // External token - use balance from hook
-      onSetAmount(formatTokenAmount(balance, token.decimals))
-    }
-  }
-
-  return (
-    <Button
-      variant="ghost"
-      size="xs"
-      className="border-slate-200 dark:border-slate-800 border"
-      onClick={handleMax}
-    >
-      Max
-    </Button>
-  )
 }
 
 export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
@@ -132,45 +64,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
     poolAddress: pool.address,
     excludeDust: true,
   })
-  const {
-    data: onChainUsdPriceToken0,
-    isLoading: isOnChainUsdPriceToken0Loading,
-  } = useStablePrice({ token: pool.token0 })
-  const {
-    data: onChainUsdPriceToken1,
-    isLoading: isOnChainUsdPriceToken1Loading,
-  } = useStablePrice({ token: pool.token1 })
-  const { data: topPools, isLoading: isTopPoolsLoading } = useTopPools()
-  const usdPriceToken0: number | undefined = useMemo(() => {
-    const topPool = topPools?.find(
-      (poolItem) => poolItem.address === pool.address,
-    )
-    if (topPool) {
-      return topPool.token0PriceUSD
-    }
-    if (onChainUsdPriceToken0) {
-      return Number(onChainUsdPriceToken0)
-    }
-    return undefined
-  }, [topPools, onChainUsdPriceToken0, pool])
-  const usdPriceToken1: number | undefined = useMemo(() => {
-    const topPool = topPools?.find(
-      (poolItem) => poolItem.address === pool.address,
-    )
-    if (topPool) {
-      return topPool.token1PriceUSD
-    }
-    if (onChainUsdPriceToken1) {
-      return Number(onChainUsdPriceToken1)
-    }
-    return undefined
-  }, [topPools, onChainUsdPriceToken1, pool])
-  const usdPriceToken0IsLoading =
-    usdPriceToken0 === undefined &&
-    (isOnChainUsdPriceToken0Loading || isTopPoolsLoading)
-  const usdPriceToken1IsLoading =
-    usdPriceToken1 === undefined &&
-    (isOnChainUsdPriceToken1Loading || isTopPoolsLoading)
 
   const token0Decimals = pool.token0.decimals
   const token1Decimals = pool.token1.decimals
@@ -186,9 +79,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
   const [isZapModeEnabled, setIsZapModeEnabled] = useState<boolean>(false)
   const [zapTokenIn, setZapTokenIn] = useState<Token | null>(null)
   const [zapAmountIn, setZapAmountIn] = useState<string>('')
-
-  const { data: usdPriceZapTokenIn, isLoading: usdPriceZapTokenInIsLoading } =
-    useStablePrice({ token: zapTokenIn ?? undefined })
 
   const currentPrice = calculatePriceFromSqrtPrice(pool.sqrtPriceX96)
   const tickRangeSelectorState = useTickRangeSelector(
@@ -593,47 +483,14 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                       </div>
                       {zapTokenIn && (
                         <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">
-                              {zapTokenIn.code}
-                            </span>
-                            <ZapTokenBalance
-                              token={zapTokenIn}
-                              address={connectedAddress}
-                            />
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex-1 rounded-lg border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/40">
-                              <input
-                                type="number"
-                                onWheel={(e) => e.currentTarget.blur()}
-                                value={zapAmountIn}
-                                onChange={(e) => setZapAmountIn(e.target.value)}
-                                placeholder="0.0"
-                                className="w-full text-lg font-semibold bg-transparent border-none outline-none"
-                              />
-                              <div className="flex flex-row justify-between mt-1">
-                                <div className="text-sm text-muted-foreground">
-                                  {usdPriceZapTokenInIsLoading ? (
-                                    <SkeletonText />
-                                  ) : (
-                                    `$ ${formatNumber(
-                                      Number(usdPriceZapTokenIn ?? '0') *
-                                        (Number(zapAmountIn) || 0),
-                                      2,
-                                    )}`
-                                  )}
-                                </div>
-                                <ZapMaxButton
-                                  token={zapTokenIn}
-                                  pool={pool}
-                                  balances={balances}
-                                  address={connectedAddress}
-                                  onSetAmount={setZapAmountIn}
-                                />
-                              </div>
-                            </div>
-                          </div>
+                          <CurrencyInput
+                            id="zap-amount-input"
+                            type="INPUT"
+                            className="p-3 bg-white border border-accent dark:bg-slate-800 rounded-xl"
+                            token={zapTokenIn}
+                            value={zapAmountIn}
+                            onChange={setZapAmountIn}
+                          />
                           <p className="text-xs text-muted-foreground">
                             {zapTokenIn.contract === pool.token0.contract ||
                             zapTokenIn.contract === pool.token1.contract
@@ -742,73 +599,19 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                     <>
                       {/* Token 0 Input */}
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">
-                            {pool.token0.code}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {balances?.token0.formatted}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex-1 rounded-lg border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/40">
-                            <input
-                              type="number"
-                              onWheel={(e) => e.currentTarget.blur()}
-                              value={amount0}
-                              onChange={(e) => {
-                                setIndependentField('token0')
-                                setTypedValue(e.target.value)
-                              }}
-                              placeholder="0.0"
-                              className="w-full text-lg font-semibold bg-transparent border-none outline-none"
-                            />
-                            <div className="flex flex-row justify-between mt-1">
-                              <div className="text-sm text-muted-foreground">
-                                {usdPriceToken0IsLoading ? (
-                                  <SkeletonText />
-                                ) : (
-                                  `$ ${formatNumber(
-                                    (usdPriceToken0 ?? 0) *
-                                      (Number(amount0) || 0),
-                                    2,
-                                  )}`
-                                )}
-                              </div>
-                              <Button
-                                variant="secondary"
-                                size="xs"
-                                className="border-slate-200 dark:border-slate-800 border"
-                                disabled={
-                                  !maxPairedAmountData ||
-                                  amount0 ===
-                                    formatTokenAmount(
-                                      BigInt(
-                                        maxPairedAmountData.maxToken0Amount,
-                                      ),
-                                      pool.token0.decimals,
-                                    )
-                                }
-                                onClick={() => {
-                                  if (!maxPairedAmountData) {
-                                    return
-                                  }
-                                  setIndependentField('token0')
-                                  setTypedValue(
-                                    formatTokenAmount(
-                                      BigInt(
-                                        maxPairedAmountData.maxToken0Amount,
-                                      ),
-                                      pool.token0.decimals,
-                                    ),
-                                  )
-                                }}
-                              >
-                                Max
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                        <CurrencyInput
+                          id="zap-amount-input"
+                          type={
+                            independentField === 'token0' ? 'INPUT' : 'OUTPUT'
+                          }
+                          className="p-3 bg-white border border-accent dark:bg-slate-800 rounded-xl"
+                          token={pool.token0}
+                          value={amount0}
+                          onChange={(value) => {
+                            setIndependentField('token0')
+                            setTypedValue(value)
+                          }}
+                        />
                       </div>
 
                       {/* Plus Icon */}
@@ -820,73 +623,19 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
 
                       {/* Token 1 Input (Auto-calculated) */}
                       <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">
-                            {pool.token1.code}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {balances?.token1.formatted}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex-1 rounded-lg border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/40">
-                            <input
-                              type="number"
-                              onWheel={(e) => e.currentTarget.blur()}
-                              value={amount1}
-                              onChange={(e) => {
-                                setIndependentField('token1')
-                                setTypedValue(e.target.value)
-                              }}
-                              placeholder="0.0"
-                              className="w-full text-lg font-semibold bg-transparent border-none outline-none"
-                            />
-                            <div className="flex flex-row justify-between mt-1">
-                              <div className="text-sm text-muted-foreground">
-                                {usdPriceToken1IsLoading ? (
-                                  <SkeletonText />
-                                ) : (
-                                  `$ ${formatNumber(
-                                    (usdPriceToken1 ?? 0) *
-                                      (Number(amount1) || 0),
-                                    2,
-                                  )}`
-                                )}
-                              </div>
-                              <Button
-                                variant="secondary"
-                                size="xs"
-                                className="border-slate-200 dark:border-slate-800 border"
-                                disabled={
-                                  !maxPairedAmountData ||
-                                  amount1 ===
-                                    formatTokenAmount(
-                                      BigInt(
-                                        maxPairedAmountData.maxToken1Amount,
-                                      ),
-                                      pool.token1.decimals,
-                                    )
-                                }
-                                onClick={() => {
-                                  if (!maxPairedAmountData) {
-                                    return
-                                  }
-                                  setIndependentField('token1')
-                                  setTypedValue(
-                                    formatTokenAmount(
-                                      BigInt(
-                                        maxPairedAmountData.maxToken1Amount,
-                                      ),
-                                      pool.token1.decimals,
-                                    ),
-                                  )
-                                }}
-                              >
-                                Max
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                        <CurrencyInput
+                          id="zap-amount-input"
+                          type={
+                            independentField === 'token1' ? 'INPUT' : 'OUTPUT'
+                          }
+                          className="p-3 bg-white border border-accent dark:bg-slate-800 rounded-xl"
+                          token={pool.token1}
+                          value={amount1}
+                          onChange={(value) => {
+                            setIndependentField('token1')
+                            setTypedValue(value)
+                          }}
+                        />
                         {dependentAmountData?.error &&
                           ((dependentAmountData?.status === 'error' && (
                             <p className="text-xs text-red-600 dark:text-red-400">
