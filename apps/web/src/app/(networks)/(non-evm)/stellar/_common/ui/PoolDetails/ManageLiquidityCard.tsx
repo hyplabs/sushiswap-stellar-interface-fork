@@ -600,7 +600,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                       {/* Token 0 Input */}
                       <div className="space-y-2">
                         <CurrencyInput
-                          id="zap-amount-input"
+                          id="add-token0-liquidity-amount-input"
                           type={
                             independentField === 'token0' ? 'INPUT' : 'OUTPUT'
                           }
@@ -624,7 +624,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                       {/* Token 1 Input (Auto-calculated) */}
                       <div className="space-y-2">
                         <CurrencyInput
-                          id="zap-amount-input"
+                          id="add-token1-liquidity-amount-input"
                           type={
                             independentField === 'token1' ? 'INPUT' : 'OUTPUT'
                           }
