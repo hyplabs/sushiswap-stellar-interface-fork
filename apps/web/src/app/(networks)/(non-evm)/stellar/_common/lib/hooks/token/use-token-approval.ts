@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { approveToken } from '../../soroban/token-helpers'
 
 export interface ApproveTokenParams {
@@ -10,6 +10,7 @@ export interface ApproveTokenParams {
 }
 
 export const useApproveToken = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationKey: ['stellar', 'token', 'approve'],
     mutationFn: async (params: ApproveTokenParams) => {
@@ -21,6 +22,15 @@ export const useApproveToken = () => {
     },
     onSuccess: () => {
       console.log('Token approval successful')
+      queryClient.invalidateQueries({
+        queryKey: ['stellar', 'token', 'allowance'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['stellar', 'token', 'multipleAllowances'],
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['stellar', 'token', 'hasSufficientAllowance'],
+      })
     },
     onError: (error) => {
       console.error('Failed to approve token:', error)

@@ -78,7 +78,7 @@ export const useExecuteSwapExactInputMulti = () => {
 
       // Invalidate token balances and positions after swap
       queryClient.invalidateQueries({
-        queryKey: ['token', 'balance'],
+        queryKey: ['stellar', 'token', 'balance'],
       })
       queryClient.invalidateQueries({
         queryKey: ['stellar', 'positions'],

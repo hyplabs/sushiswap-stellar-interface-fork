@@ -31,7 +31,7 @@ export const useAddLiquidity = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationKey: ['swap', 'addLiquidity'],
+    mutationKey: ['stellar', 'swap', 'addLiquidity'],
     onMutate: async (params: UseAddLiquidityParams) => {
       // Show "in progress" toast immediately before transaction starts
       const timestamp = Date.now()
