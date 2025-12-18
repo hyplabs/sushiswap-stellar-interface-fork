@@ -11,7 +11,7 @@ export const baseTokens: Token[] = [
     name: 'XLM',
     org: 'stellar',
     domain: 'stellar.org',
-    icon: 'https://stellar.expert/img/currency/xlm.svg',
+    icon: 'https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png',
     decimals: 7,
   },
   {
