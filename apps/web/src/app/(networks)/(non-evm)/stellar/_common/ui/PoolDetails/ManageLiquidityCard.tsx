@@ -1,5 +1,6 @@
 'use client'
 
+import { createErrorToast, createSuccessToast } from '@sushiswap/notifications'
 import {
   Button,
   Card,
@@ -18,12 +19,13 @@ import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { formatNumber } from 'sushi'
 import { ToggleZapCard } from '~evm/[chainId]/pool/_ui/toggle-zap-card'
+import { useRemoveLiquidity } from '~stellar/_common/lib/hooks/liquidity/use-remove-liquidity'
 import { useCalculateDependentAmount } from '~stellar/_common/lib/hooks/pool/use-calculate-dependent-amount'
 import { useMaxPairedAmount } from '~stellar/_common/lib/hooks/pool/use-max-paired-amount'
 import { usePoolBalances } from '~stellar/_common/lib/hooks/pool/use-pool-balances'
-import { useRemoveLiquidity } from '~stellar/_common/lib/hooks/pool/use-pool-liquidity-management'
 import { useTopPools } from '~stellar/_common/lib/hooks/pool/use-top-pools'
 import { useMyPosition } from '~stellar/_common/lib/hooks/position/use-my-position'
+import { useCollectFees } from '~stellar/_common/lib/hooks/position/use-positions'
 import { useStablePrice } from '~stellar/_common/lib/hooks/price/use-stable-price'
 import { useAddLiquidity } from '~stellar/_common/lib/hooks/swap'
 import { useTickRangeSelector } from '~stellar/_common/lib/hooks/tick/use-tick-range-selector'
@@ -37,6 +39,7 @@ import {
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
 import type { Token } from '~stellar/_common/lib/types/token.type'
 import { formatTokenAmount } from '~stellar/_common/lib/utils/format'
+import { getStellarTxnLink } from '~stellar/_common/lib/utils/stellarchain-helpers'
 import {
   MAX_TICK_RANGE,
   alignTick,
@@ -45,7 +48,7 @@ import {
 import { useStellarWallet } from '~stellar/providers'
 import { ConnectWalletButton } from '../ConnectWallet/ConnectWalletButton'
 import { TickRangeSelector } from '../TickRangeSelector/TickRangeSelector.tsx'
-import { TrustlineWarning } from '../Trustline/TrustlineWarning'
+import { CreateTrustlineButton } from '../Trustline/CreateTrustlineButton'
 import TokenSelector from '../token-selector/token-selector'
 
 interface ManageLiquidityCardProps {
@@ -205,8 +208,12 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
     pool.token1.code,
     pool.token1.issuer || '',
   )
-  const needsAnyPoolTokenTrustline =
-    needsToken0Trustline || needsToken1Trustline
+  const tokensNeedingTrustline = useMemo(() => {
+    return [
+      ...(needsToken0Trustline ? [pool.token0] : []),
+      ...(needsToken1Trustline ? [pool.token1] : []),
+    ]
+  }, [needsToken0Trustline, needsToken1Trustline, pool])
 
   const {
     tickLower,
@@ -310,6 +317,11 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
   const addLiquidityMutation = useAddLiquidity()
   const zapMutation = useZap()
   const removeLiquidityMutation = useRemoveLiquidity()
+  const collectFeesMutation = useCollectFees()
+  const [
+    removingLiquidityAndCollectingFeesStep,
+    setRemovingLiquidityAndCollectingFeesStep,
+  ] = useState<'idle' | 'removing' | 'collecting'>('idle')
   const selectedPosition = useMemo(
     () =>
       selectedPositionId == null
@@ -370,7 +382,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
     hasAmount &&
     isTickRangeValid &&
     !isDependentAmountError &&
-    !needsAnyPoolTokenTrustline
+    tokensNeedingTrustline.length === 0
 
   const formatPriceBound = (tick: number, bound: 'lower' | 'upper') => {
     if (bound === 'lower' && tick <= MAX_TICK_RANGE.lower) {
@@ -484,6 +496,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
         return
       }
 
+      setRemovingLiquidityAndCollectingFeesStep('removing')
       await removeLiquidityMutation.mutateAsync({
         tokenId: selectedPosition.tokenId,
         liquidity: liquidityToRemove,
@@ -493,10 +506,53 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
         token1Code: pool.token1.code,
       })
 
+      setRemovingLiquidityAndCollectingFeesStep('collecting')
+      try {
+        const collectResult = await collectFeesMutation.mutateAsync({
+          tokenId: selectedPosition.tokenId,
+          recipient: connectedAddress,
+          amount0Max: 18446744073709551615n, // uint128 max
+          amount1Max: 18446744073709551615n, // uint128 max
+          signTransaction,
+          signAuthEntry,
+        })
+        const token0Amount = formatTokenAmount(
+          collectResult.amount0,
+          pool.token0.decimals,
+        )
+        const token1Amount = formatTokenAmount(
+          collectResult.amount1,
+          pool.token1.decimals,
+        )
+
+        let summary = 'Fees collected successfully'
+        if (collectResult.amount0 > 0n && collectResult.amount1 > 0n) {
+          summary = `Collected ${token0Amount} ${pool.token0.code} and ${token1Amount} ${pool.token1.code}`
+        } else if (collectResult.amount0 > 0n) {
+          summary = `Collected ${token0Amount} ${pool.token0.code}`
+        } else if (collectResult.amount1 > 0n) {
+          summary = `Collected ${token1Amount} ${pool.token1.code}`
+        }
+        createSuccessToast({
+          summary,
+          type: 'claimRewards',
+          account: connectedAddress,
+          chainId: 1,
+          txHash: collectResult.txHash,
+          href: getStellarTxnLink(collectResult.txHash),
+          groupTimestamp: Date.now(),
+          timestamp: Date.now(),
+        })
+      } catch (error: any) {
+        createErrorToast(error.message, false)
+      }
+
       // Reset form
       setRemovePercent(100)
     } catch (error) {
       console.error('Failed to remove liquidity:', error)
+    } finally {
+      setRemovingLiquidityAndCollectingFeesStep('idle')
     }
   }
 
@@ -643,99 +699,97 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                         </div>
                       )}
                       {/* Trustline warnings for pool tokens (needed for zap) */}
-                      {needsToken0Trustline && pool.token0.issuer && (
-                        <TrustlineWarning
-                          assetCode={pool.token0.code}
-                          assetIssuer={pool.token0.issuer}
-                          direction="output"
+                      {tokensNeedingTrustline.length > 0 && (
+                        <CreateTrustlineButton
+                          size="lg"
+                          className="w-full"
+                          tokens={tokensNeedingTrustline}
                         />
                       )}
-                      {needsToken1Trustline && pool.token1.issuer && (
-                        <TrustlineWarning
-                          assetCode={pool.token1.code}
-                          assetIssuer={pool.token1.issuer}
-                          direction="output"
-                          className={needsToken0Trustline ? 'mt-2' : ''}
-                        />
-                      )}
-                      <Button
-                        className="w-full"
-                        size="lg"
-                        disabled={
-                          !zapTokenIn ||
-                          !zapAmountIn ||
-                          Number.parseFloat(zapAmountIn) <= 0 ||
-                          !isTickRangeValid ||
-                          needsAnyPoolTokenTrustline ||
-                          zapMutation.isPending
-                        }
-                        onClick={async () => {
-                          if (!connectedAddress || !zapAmountIn) return
+                      {tokensNeedingTrustline.length === 0 && (
+                        <Button
+                          className="w-full"
+                          size="lg"
+                          disabled={
+                            !zapTokenIn ||
+                            !zapAmountIn ||
+                            Number.parseFloat(zapAmountIn) <= 0 ||
+                            !isTickRangeValid ||
+                            tokensNeedingTrustline.length > 0 ||
+                            zapMutation.isPending
+                          }
+                          onClick={async () => {
+                            if (!connectedAddress || !zapAmountIn) return
 
-                          const alignedLower = alignTick(tickLower, tickSpacing)
-                          const alignedUpper = alignTick(tickUpper, tickSpacing)
-
-                          if (!isTickAligned(alignedLower, tickSpacing)) {
-                            console.error(
-                              `Tick lower must be a multiple of ${tickSpacing}`,
+                            const alignedLower = alignTick(
+                              tickLower,
+                              tickSpacing,
                             )
+                            const alignedUpper = alignTick(
+                              tickUpper,
+                              tickSpacing,
+                            )
+
+                            if (!isTickAligned(alignedLower, tickSpacing)) {
+                              console.error(
+                                `Tick lower must be a multiple of ${tickSpacing}`,
+                              )
+                              setTickLower(alignedLower)
+                              return
+                            }
+
+                            if (!isTickAligned(alignedUpper, tickSpacing)) {
+                              console.error(
+                                `Tick upper must be a multiple of ${tickSpacing}`,
+                              )
+                              setTickUpper(alignedUpper)
+                              return
+                            }
+
+                            if (alignedLower >= alignedUpper) {
+                              console.error(
+                                'Tick lower must be less than tick upper',
+                              )
+                              return
+                            }
+
                             setTickLower(alignedLower)
-                            return
-                          }
-
-                          if (!isTickAligned(alignedUpper, tickSpacing)) {
-                            console.error(
-                              `Tick upper must be a multiple of ${tickSpacing}`,
-                            )
                             setTickUpper(alignedUpper)
-                            return
-                          }
 
-                          if (alignedLower >= alignedUpper) {
-                            console.error(
-                              'Tick lower must be less than tick upper',
+                            if (!zapTokenIn) return
+
+                            zapMutation.mutate(
+                              {
+                                userAddress: connectedAddress,
+                                poolAddress: pool.address,
+                                tokenIn: zapTokenIn,
+                                amountIn: zapAmountIn,
+                                tokenInDecimals: zapTokenIn.decimals,
+                                token0: pool.token0,
+                                token1: pool.token1,
+                                tickLower: alignedLower,
+                                tickUpper: alignedUpper,
+                                signTransaction,
+                                signAuthEntry,
+                              },
+                              {
+                                onSuccess: () => {
+                                  setZapAmountIn('')
+                                },
+                                onError: (error) => {
+                                  console.error('Failed to zap:', error)
+                                },
+                              },
                             )
-                            return
-                          }
-
-                          setTickLower(alignedLower)
-                          setTickUpper(alignedUpper)
-
-                          if (!zapTokenIn) return
-
-                          zapMutation.mutate(
-                            {
-                              userAddress: connectedAddress,
-                              poolAddress: pool.address,
-                              tokenIn: zapTokenIn,
-                              amountIn: zapAmountIn,
-                              tokenInDecimals: zapTokenIn.decimals,
-                              token0: pool.token0,
-                              token1: pool.token1,
-                              tickLower: alignedLower,
-                              tickUpper: alignedUpper,
-                              signTransaction,
-                              signAuthEntry,
-                            },
-                            {
-                              onSuccess: () => {
-                                setZapAmountIn('')
-                              },
-                              onError: (error) => {
-                                console.error('Failed to zap:', error)
-                              },
-                            },
-                          )
-                        }}
-                      >
-                        {zapMutation.isPending
-                          ? 'Zapping & Adding Liquidity...'
-                          : needsAnyPoolTokenTrustline
-                            ? 'Create trustline first'
+                          }}
+                        >
+                          {zapMutation.isPending
+                            ? 'Zapping & Adding Liquidity...'
                             : !isTickRangeValid
                               ? 'Adjust Tick Range'
                               : 'Zap & Add Liquidity'}
-                      </Button>
+                        </Button>
+                      )}
                     </>
                   ) : (
                     // Normal Mode: Two token input with dependent amount calculation
@@ -905,23 +959,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                         token1={pool.token1}
                       />
 
-                      {/* Trustline warnings for pool tokens */}
-                      {needsToken0Trustline && pool.token0.issuer && (
-                        <TrustlineWarning
-                          assetCode={pool.token0.code}
-                          assetIssuer={pool.token0.issuer}
-                          direction="output"
-                        />
-                      )}
-                      {needsToken1Trustline && pool.token1.issuer && (
-                        <TrustlineWarning
-                          assetCode={pool.token1.code}
-                          assetIssuer={pool.token1.issuer}
-                          direction="output"
-                          className={needsToken0Trustline ? 'mt-2' : ''}
-                        />
-                      )}
-
                       {/* Submit Button */}
                       <Button
                         className="w-full"
@@ -933,15 +970,13 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                       >
                         {addLiquidityMutation.isPending
                           ? 'Adding Liquidity...'
-                          : needsAnyPoolTokenTrustline
-                            ? 'Create trustline first'
-                            : isDependentAmountError
-                              ? 'Price Range Error'
-                              : !isTickRangeValid
-                                ? 'Adjust Tick Range'
-                                : canAddLiquidity
-                                  ? 'Add Liquidity'
-                                  : 'Enter Amount'}
+                          : isDependentAmountError
+                            ? 'Price Range Error'
+                            : !isTickRangeValid
+                              ? 'Adjust Tick Range'
+                              : canAddLiquidity
+                                ? 'Add Liquidity'
+                                : 'Enter Amount'}
                       </Button>
                     </>
                   )}
@@ -1144,13 +1179,16 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                         size="lg"
                         disabled={
                           !hasRemoveAmount ||
-                          removeLiquidityMutation.isPending ||
+                          removingLiquidityAndCollectingFeesStep !== 'idle' ||
                           !selectedPosition
                         }
                         onClick={handleRemoveLiquidity}
                       >
-                        {removeLiquidityMutation.isPending
-                          ? 'Removing Liquidity...'
+                        {removingLiquidityAndCollectingFeesStep !== 'idle'
+                          ? removingLiquidityAndCollectingFeesStep ===
+                            'removing'
+                            ? 'Removing Liquidity...'
+                            : 'Collecting Fees...'
                           : hasRemoveAmount
                             ? 'Remove Liquidity'
                             : 'Select Percentage'}

@@ -9,5 +9,5 @@ export * from './use-calculate-paired-amount'
 export {
   useRemoveLiquidity,
   type RemovePoolLiquidityParams,
-} from './use-pool-liquidity-management'
+} from '../liquidity/use-remove-liquidity'
 export * from './use-pool-info'
