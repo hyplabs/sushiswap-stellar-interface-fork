@@ -25,7 +25,11 @@ export const CreateTrustlineButton = ({
   const [creatingTrustlines, setCreatingTrustlines] = useState(false)
 
   const handleCreateTrustlines = async () => {
+    if (tokens.length === 0) {
+      return
+    }
     try {
+      setCreatingTrustlines(true)
       for (const token of tokens) {
         await createTrustline.mutateAsync({
           assetCode: token.code,
