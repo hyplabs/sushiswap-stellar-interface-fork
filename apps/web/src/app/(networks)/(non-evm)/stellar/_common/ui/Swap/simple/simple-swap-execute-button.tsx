@@ -66,7 +66,11 @@ export const SimpleSwapExecuteButton = () => {
     }
   }, [amount, token0])
 
-  const { route } = useBestRoute({
+  const {
+    route,
+    isLoading: isRouteLoading,
+    isFetching: isRouteFetching,
+  } = useBestRoute({
     tokenIn: token0,
     tokenOut: token1,
     amountIn,
@@ -197,15 +201,6 @@ export const SimpleSwapExecuteButton = () => {
     executeMultiHopSwap.isPending ||
     needsToken1Trustline ||
     (showPriceImpactWarning && !checked)
-
-  // Get loading state from route hook
-  const { isLoading: isRouteLoading, isFetching: isRouteFetching } =
-    useBestRoute({
-      tokenIn: token0,
-      tokenOut: token1,
-      amountIn,
-      enabled: amountIn > 0n,
-    })
 
   // Determine button text
   const buttonText = useMemo(() => {
