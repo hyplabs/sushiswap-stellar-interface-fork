@@ -1,7 +1,7 @@
 import { useDebounce } from '@sushiswap/hooks'
 import { useQuery } from '@tanstack/react-query'
-import { getTokenMetadata } from '../../soroban/token-helpers'
 import type { Token } from '~stellar/_common/lib/types/token.type'
+import { getTokenMetadata } from '../../soroban/token-helpers'
 import {
   filterTokens,
   getSortedTokensByQuery,
@@ -70,7 +70,11 @@ export const useSortedTokenList = ({ query, tokenMap, balanceMap }: Params) => {
             filteredSortedTokens = [customToken]
           }
         } catch (error) {
-          console.warn('Failed to fetch token metadata for:', debouncedQuery, error)
+          console.warn(
+            'Failed to fetch token metadata for:',
+            debouncedQuery,
+            error,
+          )
           // Return empty array if we can't fetch the token
         }
       }

@@ -94,7 +94,10 @@ export async function getPoolInfoFromContract(
           isStable: false,
         }
       } catch (error) {
-        console.warn(`Failed to fetch metadata for token ${token0Address}:`, error)
+        console.warn(
+          `Failed to fetch metadata for token ${token0Address}:`,
+          error,
+        )
         token0 = {
           contract: token0Address,
           code: token0Address.slice(0, 8),
@@ -123,7 +126,10 @@ export async function getPoolInfoFromContract(
           isStable: false,
         }
       } catch (error) {
-        console.warn(`Failed to fetch metadata for token ${token1Address}:`, error)
+        console.warn(
+          `Failed to fetch metadata for token ${token1Address}:`,
+          error,
+        )
         token1 = {
           contract: token1Address,
           code: token1Address.slice(0, 8),
