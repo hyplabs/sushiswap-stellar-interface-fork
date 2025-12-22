@@ -26,13 +26,11 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
   // If pool is not provided, fetch it using the address
   const {
     data: fetchedPool,
-    isLoading: isFetching,
+    isFetching,
     isPending,
   } = usePoolInfo(address || null)
 
   const actualPool = pool || fetchedPool
-  // Show loading state while fetching OR while waiting for query to be enabled (isPending)
-  const isLoading = !pool && (isFetching || (isPending && !fetchedPool))
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,7 +41,7 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
         >
           ← Back
         </LinkInternal>
-        {isLoading ? (
+        {isFetching || isPending ? (
           <div className="flex items-center w-full gap-3">
             <div className="flex items-center">
               <SkeletonCircle radius={40} />
@@ -73,18 +71,8 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
               </LinkExternal>
             </Button>
           </div>
-        ) : (
-          // Fallback skeleton for when data is loading but isLoading hasn't been set yet
-          <div className="flex items-center w-full gap-3">
-            <div className="flex items-center">
-              <SkeletonCircle radius={40} />
-              <SkeletonCircle radius={40} className="-ml-[13.33px]" />
-            </div>
-            <div className="w-[200px]">
-              <SkeletonText fontSize="3xl" />
-            </div>
-          </div>
-        )}
+        ) : // Pool did not load
+        null}
       </div>
 
       <div className="flex flex-wrap items-center gap-y-5 gap-x-[32px] text-secondary-foreground mb-8 mt-1.5">
@@ -96,7 +84,7 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
           <span className="tracking-tighter font-semibold">Network</span>
           Stellar
         </div>
-        {isLoading ? (
+        {isFetching || isPending ? (
           <>
             <div className="w-48">
               <SkeletonText />
@@ -150,17 +138,8 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
               </LinkExternal>
             </div>
           </>
-        ) : (
-          // Fallback skeleton for when data is loading but isLoading hasn't been set yet
-          <>
-            <div className="w-48">
-              <SkeletonText />
-            </div>
-            <div className="w-48">
-              <SkeletonText />
-            </div>
-          </>
-        )}
+        ) : // Pool did not load
+        null}
       </div>
     </div>
   )
