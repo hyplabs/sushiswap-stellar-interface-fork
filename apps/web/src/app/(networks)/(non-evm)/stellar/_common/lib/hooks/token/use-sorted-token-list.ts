@@ -44,32 +44,33 @@ export const useSortedTokenList = ({ query, tokenMap, balanceMap }: Params) => {
       )
 
       // If searching by contract address and no results found, try to fetch token info from chain
-      if (filteredSortedTokens.length === 0) {
-        if (isContractAddress(debouncedQuery)) {
-          try {
-            const metadata = await getTokenMetadata(debouncedQuery)
-            if (metadata?.symbol) {
-              // Create a token object from the fetched metadata
-              const customContractToken: Token = {
-                contract: debouncedQuery,
-                code: metadata.symbol,
-                name: metadata.name || metadata.symbol,
-                decimals: metadata.decimals,
-                icon: undefined, // No icon for custom tokens
-                issuer: '',
-                org: 'custom',
-                isStable: false,
-              }
-              filteredSortedTokens = [customContractToken]
+      if (
+        filteredSortedTokens.length === 0 &&
+        isContractAddress(debouncedQuery)
+      ) {
+        try {
+          const metadata = await getTokenMetadata(debouncedQuery)
+          if (metadata?.symbol) {
+            // Create a token object from the fetched metadata
+            const customContractToken: Token = {
+              contract: debouncedQuery,
+              code: metadata.symbol,
+              name: metadata.name || metadata.symbol,
+              decimals: metadata.decimals,
+              icon: undefined, // No icon for custom tokens
+              issuer: '',
+              org: 'custom',
+              isStable: false,
             }
-          } catch (error) {
-            console.warn(
-              'Failed to fetch token metadata for:',
-              debouncedQuery,
-              error,
-            )
-            // Return empty array if we can't fetch the token
+            filteredSortedTokens = [customContractToken]
           }
+        } catch (error) {
+          console.warn(
+            'Failed to fetch token metadata for:',
+            debouncedQuery,
+            error,
+          )
+          // Return empty array if we can't fetch the token
         }
       }
 
