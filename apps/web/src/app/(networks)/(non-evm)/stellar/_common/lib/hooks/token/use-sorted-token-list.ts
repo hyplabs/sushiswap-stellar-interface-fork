@@ -19,29 +19,6 @@ function isContractAddress(query: string): boolean {
   return query.startsWith('C') && query.length === 56
 }
 
-// Check if query looks like a Stellar classic token id: `${tokenCode}:${issuerAddress}`
-// Note that issuer address starts with G and is 56 chars
-function safeParseClassicId(
-  query: string,
-): { success: false } | { success: true; code: string; issuer: string } {
-  const lastColonIndex = query.lastIndexOf(':')
-  if (lastColonIndex === -1) {
-    return { success: false }
-  }
-  const parts = [
-    query.slice(0, lastColonIndex),
-    query.slice(lastColonIndex + 1),
-  ]
-  if (parts.length !== 2) {
-    return { success: false }
-  }
-  const [code, issuer] = parts
-  if (code.length === 0 || issuer.length !== 56 || !issuer.startsWith('G')) {
-    return { success: false }
-  }
-  return { success: true, code, issuer }
-}
-
 export const useSortedTokenList = ({ query, tokenMap, balanceMap }: Params) => {
   const debouncedQuery = useDebounce(query, 250)
   return useQuery({
@@ -65,8 +42,6 @@ export const useSortedTokenList = ({ query, tokenMap, balanceMap }: Params) => {
         sortedTokens,
         debouncedQuery,
       )
-
-      const parsedClassicId = safeParseClassicId(debouncedQuery)
 
       // If searching by contract address and no results found, try to fetch token info from chain
       if (filteredSortedTokens.length === 0) {
@@ -95,21 +70,6 @@ export const useSortedTokenList = ({ query, tokenMap, balanceMap }: Params) => {
             )
             // Return empty array if we can't fetch the token
           }
-        } else if (parsedClassicId.success) {
-          // If searching by classic id and no results found, create a token object from the parsed id
-          const { code, issuer } = parsedClassicId
-          // Create a token object from the fetched metadata
-          const customClassicToken: Token = {
-            contract: debouncedQuery,
-            code,
-            name: code,
-            decimals: 7, // All classic tokens have 7 decimals
-            icon: undefined, // No icon for custom tokens
-            issuer: issuer,
-            org: 'custom',
-            isStable: false,
-          }
-          filteredSortedTokens = [customClassicToken]
         }
       }
 
