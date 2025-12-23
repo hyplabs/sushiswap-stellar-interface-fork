@@ -24,7 +24,6 @@ export interface PositionSummary {
 }
 
 export interface MyPositionData {
-  totalValue: number
   positions: PositionSummary[]
   isLoading: boolean
   error: Error | null
@@ -193,7 +192,6 @@ export function useMyPosition({
   const positionData = useMemo((): MyPositionData => {
     if (positionsLoading || principalsLoading || poolsLoading) {
       return {
-        totalValue: 0,
         positions: [],
         isLoading: true,
         error: positionsError || null,
@@ -234,11 +232,7 @@ export function useMyPosition({
       })
     })
 
-    // Calculate total value (placeholder - would need price data)
-    const totalValue = 0 // TODO: Calculate based on token amounts and prices
-
     return {
-      totalValue,
       positions: positionSummaries,
       isLoading: false,
       error: positionsError || null,
