@@ -213,7 +213,7 @@ export function useMyPosition({
     const positionSummaries: PositionSummary[] = []
 
     // Process each position with its principal amounts
-    filteredPositions.forEach(async (position) => {
+    filteredPositions.forEach((position) => {
       const principalData = positionToPrincipalMap[position.tokenId]
       const positionKey = getPositionKey(position)
       const poolData = positionToPoolMap[positionKey]

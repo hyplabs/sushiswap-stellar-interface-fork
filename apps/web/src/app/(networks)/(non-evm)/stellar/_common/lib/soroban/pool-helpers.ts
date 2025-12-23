@@ -62,8 +62,10 @@ export async function getPoolInfoFromContract(
       tick,
     } = poolData.state
 
-    const token0 = await getTokenByContract(token0Address)
-    const token1 = await getTokenByContract(token1Address)
+    const [token0, token1] = await Promise.all([
+      getTokenByContract(token0Address),
+      getTokenByContract(token1Address),
+    ])
 
     return {
       token0,
@@ -162,7 +164,7 @@ export async function getPoolInfo(address: string): Promise<PoolInfo | null> {
 export async function getPoolBalances(
   address: string,
   connectedAddress: string,
-): Promise<PoolReserves | null> {
+): Promise<PoolReserves> {
   const config = await getPoolInfoFromContract(address)
 
   if (!config) {
