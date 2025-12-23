@@ -29,9 +29,8 @@ export const PoolLiquidity = ({
             <SkeletonText fontSize="sm" />
           </div>
         ) : (
-          <CardDescription>{liquidity.formatted}</CardDescription>
+          <CardDescription>{liquidity.formatted} Tokens</CardDescription>
         )}
-        <p className="text-sm text-muted-foreground">Tokens</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
