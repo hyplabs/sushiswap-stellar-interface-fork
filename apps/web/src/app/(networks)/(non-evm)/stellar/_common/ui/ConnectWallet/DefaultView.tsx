@@ -81,7 +81,7 @@ export const DefaultView = ({ setView }: DefaultViewProps) => {
           <Link
             href={getStellarAddressLink(connectedAddress ?? '')}
             target="_blank"
-            rel="noopenner noreferrer"
+            rel="noopener noreferrer"
           >
             <IconButton
               icon={LinkIcon}

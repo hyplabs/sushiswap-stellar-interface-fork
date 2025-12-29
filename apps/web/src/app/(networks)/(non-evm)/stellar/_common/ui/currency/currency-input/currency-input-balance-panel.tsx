@@ -26,8 +26,14 @@ export const CurrencyInputBalancePanel: FC<CurrencyInputBalancePanel> = ({
 
   return (
     <button
-      id="swap-from-balance-button"
-      testdata-id="swap-from-balance-button"
+      id={
+        type === 'INPUT'
+          ? 'swap-input-balance-button'
+          : 'swap-output-balance-button'
+      }
+      testdata-id={
+        type === 'INPUT' ? 'swap-from-balance-button' : 'swap-to-balance-button'
+      }
       type="button"
       onClick={onClick}
       className={classNames(

@@ -106,7 +106,6 @@ export class SushiStellarService {
         tokenId: existingPosition.tokenId,
         liquidity: result.liquidity,
       }
-    } else {
     }
 
     // No existing position found - mint new one

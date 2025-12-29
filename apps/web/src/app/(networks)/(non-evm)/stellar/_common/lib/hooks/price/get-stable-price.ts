@@ -98,10 +98,9 @@ const getTokenPriceDirectOrViaXlm = async (token?: Token): Promise<string> => {
         : prev
     })
     return formatUnits(
-      BigInt(
-        maxOutputAmountWithoutFees.totalAmountOut +
-          maxOutputAmountWithoutFees.feeAmountOut,
-      ),
+      maxOutputAmountWithoutFees.totalAmountOut +
+        maxOutputAmountWithoutFees.feeAmountOut,
+
       maxOutputAmountWithoutFees.outputToken.decimals,
     )
   } catch (error) {
