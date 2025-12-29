@@ -2,7 +2,7 @@ import { createErrorToast, createSuccessToast } from '@sushiswap/notifications'
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@sushiswap/ui'
 import type React from 'react'
 import { useState } from 'react'
-import { useStablePrice } from '~stellar/_common/lib/hooks/price/use-stable-price'
+import { usePoolUsdValue } from '~stellar/_common/lib/hooks/pool/use-pool-price-usd'
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
 import { formatTokenAmount } from '~stellar/_common/lib/utils/format'
 import { useStellarWallet } from '~stellar/providers'
@@ -31,6 +31,13 @@ export const CollectFeesBox: React.FC<CollectFeesBoxProps> = ({ pool }) => {
   const { data: priceToken1, isLoading: isLoadingPriceToken1 } = useStablePrice(
     { token: pool.token1 },
   )
+  const { data: poolUsdValue, isPending } = usePoolUsdValue({
+    token0,
+    token1,
+    reserve0: principalToken0,
+    reserve1: principalToken1,
+    pairAddress: pool,
+  })
   const isLoading =
     isPositionsLoading || isLoadingPriceToken0 || isLoadingPriceToken1
 

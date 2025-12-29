@@ -1,19 +1,20 @@
 import { SkeletonText } from '@sushiswap/ui'
 import { formatUSD } from 'sushi'
-import { useLPUsdValue } from '~stellar/_common/lib/hooks/pool/use-pool-usd-value'
+import { usePoolUsdValue } from '~stellar/_common/lib/hooks/pool/use-pool-price-usd'
 import type { IPositionRowData } from './PositionsTable'
 
 export const PositionValueCell = ({ data }: { data: IPositionRowData }) => {
-  const { token0, token1, principalToken0, principalToken1 } = data
+  const { pool, token0, token1, principalToken0, principalToken1 } = data
   const {
     data: totalLPUsdValue,
     isLoading,
     isPending,
-  } = useLPUsdValue({
+  } = usePoolUsdValue({
     token0,
     token1,
     reserve0: principalToken0,
     reserve1: principalToken1,
+    pairAddress: pool,
   })
 
   if (isLoading || isPending || Number.isNaN(totalLPUsdValue)) {

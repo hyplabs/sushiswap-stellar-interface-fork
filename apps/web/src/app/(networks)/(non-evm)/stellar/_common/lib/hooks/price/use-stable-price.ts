@@ -2,7 +2,10 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { getStablePrice } from '~stellar/_common/lib/hooks/price/get-stable-price'
 import type { Token } from '~stellar/_common/lib/types/token.type'
 
-export const useStablePrice = ({ token }: { token: Token | undefined }) => {
+export const useStablePrice = ({
+  token,
+  enabled = true,
+}: { token: Token | undefined; enabled?: boolean }) => {
   return useQuery({
     queryKey: ['stellar', 'useStablePrice', { token: token?.contract }],
     queryFn: async () => {
@@ -10,7 +13,7 @@ export const useStablePrice = ({ token }: { token: Token | undefined }) => {
       return tokenPrice
     },
     placeholderData: keepPreviousData,
-    enabled: !!token,
+    enabled: !!token && enabled,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
