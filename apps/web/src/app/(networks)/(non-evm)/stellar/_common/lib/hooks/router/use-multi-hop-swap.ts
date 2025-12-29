@@ -2,6 +2,7 @@
 
 import { createErrorToast, createToast } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { addMinutes } from 'date-fns'
 import ms from 'ms'
 import { ChainId } from 'sushi'
 import { useStellarWallet } from '~stellar/providers'
@@ -41,7 +42,8 @@ export const useExecuteSwapExactInputMulti = () => {
           amountIn: params.amountIn,
           amountOutMinimum: params.amountOutMinimum,
           deadline:
-            params.deadline || Math.floor((Date.now() + ms('10m')) / 1000),
+            params.deadline ||
+            Math.floor(addMinutes(new Date(), 10).valueOf() / 1000),
         },
         signTransaction,
       )

@@ -6,7 +6,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import ms from 'ms'
+import { addMinutes } from 'date-fns'
 import { ChainId } from 'sushi'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { AddLiquidityParams } from '../../services/swap-service'
@@ -56,7 +56,9 @@ export const useAddLiquidity = () => {
         tickLower: params.tickLower,
         tickUpper: params.tickUpper,
         recipient: params.recipient || params.userAddress,
-        deadline: params.deadline || Math.floor((Date.now() + ms('5m')) / 1000),
+        deadline:
+          params.deadline ||
+          Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
       }
 
       const result = await service.addLiquidity(

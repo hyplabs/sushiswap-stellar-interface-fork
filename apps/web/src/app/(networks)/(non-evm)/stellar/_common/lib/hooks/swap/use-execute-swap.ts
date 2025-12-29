@@ -6,6 +6,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { addMinutes } from 'date-fns'
 import ms from 'ms'
 import { nanoid } from 'nanoid'
 import { toast } from 'react-toastify'
@@ -71,7 +72,8 @@ export const useExecuteSwap = () => {
           amountOutMinimum: params.amountOutMinimum,
           sqrtPriceLimitX96: params.sqrtPriceLimitX96,
           deadline:
-            params.deadline || Math.floor((Date.now() + ms('10m')) / 1000),
+            params.deadline ||
+            Math.floor(addMinutes(new Date(), 10).valueOf() / 1000),
         },
         signTransaction,
       )
@@ -183,7 +185,8 @@ export const useExecuteMultiHopSwap = () => {
           amountIn: params.amountIn,
           amountOutMinimum: params.amountOutMinimum,
           deadline:
-            params.deadline || Math.floor((Date.now() + ms('10m')) / 1000),
+            params.deadline ||
+            Math.floor(addMinutes(new Date(), 10).valueOf() / 1000),
         },
         signTransaction,
       )

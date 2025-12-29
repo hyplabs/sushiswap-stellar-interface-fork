@@ -6,6 +6,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { addMinutes } from 'date-fns'
 import ms from 'ms'
 import { ChainId } from 'sushi'
 import { decreaseLiquidity } from '~stellar/_common/lib/soroban/position-manager-helpers'
@@ -47,7 +48,9 @@ export const useRemoveLiquidity = () => {
         throw new Error('Wallet not connected')
       }
 
-      const deadline = BigInt(Math.floor((Date.now() + ms('5m')) / 1000))
+      const deadline = BigInt(
+        Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
+      )
 
       const decreaseResult = await decreaseLiquidity({
         tokenId: params.tokenId,
