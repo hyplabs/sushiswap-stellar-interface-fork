@@ -29,7 +29,7 @@ type DefaultViewProps = {
 
 export const DefaultView = ({ setView }: DefaultViewProps) => {
   const { connectedAddress, disconnectWallet } = useStellarWallet()
-  const { data, isLoading: isLoadingBalance } = useXlmBalance()
+  const { data: xlmBalance, isLoading: isLoadingBalance } = useXlmBalance()
 
   // Get base tokens (excluding XLM since we show it separately)
   const baseTokens: Token[] = getBaseTokens().filter(
@@ -107,9 +107,10 @@ export const DefaultView = ({ setView }: DefaultViewProps) => {
             <SkeletonText className="!w-24 mx-auto !h-7" />
             <span className="text-3xl font-medium h-7">XLM</span>
           </div>
-        ) : data?.formattedBalance && data.formattedBalance !== '-' ? (
+        ) : xlmBalance?.formattedBalance &&
+          xlmBalance.formattedBalance !== '-' ? (
           <p className="text-3xl font-medium whitespace-nowrap">
-            {data.formattedBalance} XLM
+            {xlmBalance.formattedBalance} XLM
           </p>
         ) : (
           <div className="flex flex-col items-center gap-1">

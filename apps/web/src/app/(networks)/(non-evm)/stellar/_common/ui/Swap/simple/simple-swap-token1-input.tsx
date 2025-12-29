@@ -11,7 +11,7 @@ export const SimpleSwapToken1Input = () => {
   const { setToken1 } = useSimpleSwapActions()
 
   const outputSwapTokenAmount = outputAmount
-    ? Number.parseFloat(formatUnits(outputAmount, token1.decimals)).toFixed(2)
+    ? formatUnits(outputAmount, token1.decimals)
     : ''
 
   return (

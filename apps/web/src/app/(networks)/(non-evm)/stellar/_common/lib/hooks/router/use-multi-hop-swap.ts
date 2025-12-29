@@ -66,7 +66,7 @@ export const useExecuteSwapExactInputMulti = () => {
         href: getStellarTxnLink(result.txHash),
         promise: Promise.resolve(result),
         summary: {
-          pending: `Swapping ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${params.tokenOut?.code || 'tokens'}`,
+          pending: `Swapping ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${amountOutFormatted} ${params.tokenOut?.code || 'tokens'}`,
           completed: `Swapped ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${amountOutFormatted} ${params.tokenOut?.code || 'tokens'}`,
           failed: 'Multi-hop swap failed',
         },
