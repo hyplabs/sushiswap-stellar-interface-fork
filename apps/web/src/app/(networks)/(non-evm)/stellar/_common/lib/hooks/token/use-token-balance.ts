@@ -15,10 +15,12 @@ export const useTokenBalance = (
   return useQuery({
     queryKey: ['stellar', 'token', 'balance', address, tokenContractId],
     queryFn: async () => {
-      if (!address || !tokenContractId) return null
+      if (!address || !tokenContractId) {
+        return null
+      }
       return await getTokenBalance(address, tokenContractId)
     },
-    enabled: !!address && !!tokenContractId,
+    enabled: Boolean(address && tokenContractId),
   })
 }
 
@@ -35,10 +37,12 @@ export const useTokenBalanceFromToken = (
       token?.contract,
     ],
     queryFn: async () => {
-      if (!address || !token) return null
+      if (!address || !token) {
+        return null
+      }
       return await getTokenBalanceFromToken(address, token)
     },
-    enabled: !!address && !!token,
+    enabled: Boolean(address && token),
   })
 }
 
@@ -74,7 +78,7 @@ export const useTokenBalances = (address: string | null, tokens: Token[]) => {
       }
       return tokensWithBalances
     },
-    enabled: !!address || !!tokens,
+    enabled: Boolean(address && tokens),
   })
 }
 
@@ -113,6 +117,6 @@ export const useTokenBalancesMap = (
 
       return balanceMap
     },
-    enabled: !!address && contracts.length > 0,
+    enabled: Boolean(address && contracts.length > 0),
   })
 }

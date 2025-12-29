@@ -31,7 +31,7 @@ export const useGetQuote = (params: UseGetQuoteParams) => {
       )
       return route
     },
-    enabled: params.enabled !== false && params.amountIn > 0n,
+    enabled: Boolean(params.enabled !== false && params.amountIn > 0n),
     staleTime: 30000, // 30 seconds
     refetchInterval: 10000, // 10 seconds
   })

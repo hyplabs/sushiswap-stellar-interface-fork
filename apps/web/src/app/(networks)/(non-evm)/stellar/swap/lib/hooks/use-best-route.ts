@@ -333,13 +333,14 @@ export function useBestRoute({
         return null
       }
     },
-    enabled:
+    enabled: Boolean(
       enabled &&
-      !!tokenIn &&
-      !!tokenOut &&
-      !!poolGraphData &&
-      amountIn > 0n &&
-      tokenIn.contract !== tokenOut.contract,
+        tokenIn &&
+        tokenOut &&
+        poolGraphData &&
+        amountIn > 0n &&
+        tokenIn.contract !== tokenOut.contract,
+    ),
     staleTime: 1000 * 10, // 10 seconds
     gcTime: 1000 * 30, // 30 seconds
     retry: 1, // Retry once on failure

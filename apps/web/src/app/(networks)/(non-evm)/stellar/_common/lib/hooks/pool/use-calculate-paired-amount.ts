@@ -128,12 +128,13 @@ export function useCalculatePairedAmount(
         }
       }
     },
-    enabled:
-      !!poolAddress &&
-      !!initialized &&
-      tickLower !== null &&
-      tickUpper !== null &&
-      decimals !== null,
+    enabled: Boolean(
+      poolAddress &&
+        initialized &&
+        tickLower !== null &&
+        tickUpper !== null &&
+        decimals !== null,
+    ),
     staleTime: ms('10s'), // 10 seconds
   })
 }

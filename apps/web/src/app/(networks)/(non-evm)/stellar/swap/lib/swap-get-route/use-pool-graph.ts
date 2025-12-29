@@ -396,7 +396,7 @@ export function usePoolGraph({
 
       return augmentPoolGraph({ baseGraph, additionalTokens: newTokens })
     },
-    enabled: !!baseGraph,
+    enabled: Boolean(baseGraph),
     staleTime: 1000 * 60 * 2, // 2 minutes for augmented graph
     gcTime: 1000 * 60 * 5, // 5 minutes
     retry: 1,

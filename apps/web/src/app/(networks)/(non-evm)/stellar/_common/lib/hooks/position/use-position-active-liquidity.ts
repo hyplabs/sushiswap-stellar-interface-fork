@@ -64,7 +64,7 @@ export function usePositionActiveLiquidity({
         return 0n
       }
     },
-    enabled: !!poolAddress,
+    enabled: Boolean(poolAddress),
     staleTime: 10000, // 10 seconds
   })
 }

@@ -74,7 +74,7 @@ export const SimpleSwapExecuteButton = () => {
     tokenIn: token0,
     tokenOut: token1,
     amountIn,
-    enabled: amountIn > 0n,
+    enabled: Boolean(amountIn > 0n),
   })
 
   const showPriceImpactWarning = requiresPriceImpactConfirmation(

@@ -25,7 +25,7 @@ export const usePoolsBetween = (params: UsePoolsBetweenParams) => {
       const pools = await service.getPoolsBetween(params.tokenA, params.tokenB)
       return pools
     },
-    enabled: params.enabled !== false,
+    enabled: Boolean(params.enabled !== false),
     staleTime: 60000, // 1 minute
   })
 }

@@ -16,6 +16,7 @@ import {
 } from '@sushiswap/ui'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { ChainId } from 'sushi'
 import { ToggleZapCard } from '~evm/[chainId]/pool/_ui/toggle-zap-card'
 import { useRemoveLiquidity } from '~stellar/_common/lib/hooks/liquidity/use-remove-liquidity'
 import { useCalculateDependentAmount } from '~stellar/_common/lib/hooks/pool/use-calculate-dependent-amount'
@@ -422,7 +423,7 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
           summary,
           type: 'claimRewards',
           account: connectedAddress,
-          chainId: 1,
+          chainId: ChainId.STELLAR,
           txHash: collectResult.txHash,
           href: getStellarTxnLink(collectResult.txHash),
           groupTimestamp: Date.now(),

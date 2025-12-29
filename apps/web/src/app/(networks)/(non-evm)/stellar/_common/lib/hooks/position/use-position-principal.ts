@@ -25,7 +25,7 @@ export function usePositionPrincipal(tokenId: number | undefined) {
         return { amount0: 0n, amount1: 0n }
       }
     },
-    enabled: tokenId !== undefined && tokenId !== null,
+    enabled: Boolean(tokenId !== undefined),
     staleTime: ms('30s'),
     retry: 1,
   })

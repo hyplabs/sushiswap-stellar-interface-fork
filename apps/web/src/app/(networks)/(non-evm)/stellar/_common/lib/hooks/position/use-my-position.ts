@@ -90,7 +90,7 @@ export function useMyPosition({
           return [getPositionKey(position), null] as const
         }
       },
-      enabled: !positionsLoading && !positionsError,
+      enabled: Boolean(!positionsLoading && !positionsError),
       staleTime: 1000 * 60, // 1 minute
       retry: 1,
     })),
@@ -175,7 +175,7 @@ export function useMyPosition({
           )
         }
       },
-      enabled: positions.length > 0 && pool !== '',
+      enabled: Boolean(positions.length > 0 && pool),
       staleTime: 1000 * 30, // 30 seconds
       retry: 1,
     })),

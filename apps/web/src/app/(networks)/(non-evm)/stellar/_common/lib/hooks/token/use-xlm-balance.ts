@@ -9,13 +9,15 @@ export const useXlmBalance = () => {
   return useQuery({
     queryKey: ['stellar', 'useXlmBalance', connectedAddress],
     queryFn: async () => {
-      if (!connectedAddress) return { balance: 0n, formattedBalance: '-' }
+      if (!connectedAddress) {
+        return { balance: 0n, formattedBalance: '-' }
+      }
       const balance = await getXlmBalance(connectedAddress)
       const formattedBalance = formatXLM(balance)
       return { balance, formattedBalance }
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    enabled: !!connectedAddress,
+    enabled: Boolean(connectedAddress),
   })
 }

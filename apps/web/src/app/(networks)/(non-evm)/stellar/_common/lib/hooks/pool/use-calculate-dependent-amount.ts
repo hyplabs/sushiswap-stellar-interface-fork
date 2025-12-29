@@ -169,7 +169,7 @@ export function useCalculateDependentAmount(
         }
       }
     },
-    enabled: !!poolAddress && !!initialized,
+    enabled: Boolean(poolAddress && initialized),
     staleTime: ms('10s'), // 10 seconds
   })
 }

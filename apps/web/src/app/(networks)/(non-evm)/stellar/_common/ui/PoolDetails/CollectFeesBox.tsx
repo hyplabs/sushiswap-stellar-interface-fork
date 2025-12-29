@@ -2,6 +2,7 @@ import { createErrorToast, createSuccessToast } from '@sushiswap/notifications'
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@sushiswap/ui'
 import type React from 'react'
 import { useState } from 'react'
+import { ChainId } from 'sushi'
 import { useStablePrice } from '~stellar/_common/lib/hooks/price/use-stable-price'
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
 import { formatTokenAmount } from '~stellar/_common/lib/utils/format'
@@ -142,7 +143,7 @@ export const CollectFeesBox: React.FC<CollectFeesBoxProps> = ({ pool }) => {
           summary,
           type: 'claimRewards',
           account: connectedAddress,
-          chainId: 1,
+          chainId: ChainId.STELLAR,
           txHash: lastTxHash,
           href: getStellarTxnLink(lastTxHash),
           groupTimestamp: Date.now(),

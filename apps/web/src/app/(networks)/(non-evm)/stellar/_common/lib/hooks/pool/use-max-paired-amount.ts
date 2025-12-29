@@ -88,14 +88,15 @@ export function useMaxPairedAmount(
             : token1Balance,
       }
     },
-    enabled:
-      !!poolAddress &&
-      !!token0Balance &&
-      !!token1Balance &&
-      !!pairedAmountData &&
-      !!initialized &&
-      tickLower !== null &&
-      tickUpper !== null,
+    enabled: Boolean(
+      poolAddress &&
+        token0Balance &&
+        token1Balance &&
+        pairedAmountData &&
+        initialized &&
+        tickLower !== null &&
+        tickUpper !== null,
+    ),
     staleTime: ms('10s'), // 10 seconds
   })
 }

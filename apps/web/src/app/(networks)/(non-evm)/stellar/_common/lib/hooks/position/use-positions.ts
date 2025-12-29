@@ -29,7 +29,7 @@ export function useUserPositions({
         throw error
       }
     },
-    enabled: !!userAddress,
+    enabled: Boolean(userAddress),
     staleTime: 1000 * 60, // 1 minute
     retry: false, // Don't retry on error to see the error immediately
   })
@@ -42,10 +42,12 @@ export function usePosition(tokenId: number | undefined) {
   return useQuery({
     queryKey: ['stellar', 'positions', 'single', tokenId],
     queryFn: async () => {
-      if (!tokenId) return null
+      if (!tokenId) {
+        return null
+      }
       return await positionService.getPosition(tokenId)
     },
-    enabled: !!tokenId,
+    enabled: Boolean(tokenId !== undefined),
     staleTime: 1000 * 60, // 1 minute
   })
 }
@@ -57,10 +59,12 @@ export function useUncollectedFees(tokenId: number | undefined) {
   return useQuery({
     queryKey: ['stellar', 'positions', 'fees', tokenId],
     queryFn: async () => {
-      if (!tokenId) return null
+      if (!tokenId) {
+        return null
+      }
       return await positionService.getUncollectedFees(tokenId)
     },
-    enabled: !!tokenId,
+    enabled: Boolean(tokenId !== undefined),
     staleTime: 1000 * 30, // 30 seconds
   })
 }
