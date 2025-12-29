@@ -7,7 +7,6 @@ import {
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addMinutes } from 'date-fns'
-import ms from 'ms'
 import { ChainId } from 'sushi'
 import { decreaseLiquidity } from '~stellar/_common/lib/soroban/position-manager-helpers'
 import { getStellarTxnLink } from '~stellar/_common/lib/utils/stellarchain-helpers'

@@ -3,7 +3,6 @@
 import { SlippageToleranceStorageKey } from '@sushiswap/hooks'
 import { Button } from '@sushiswap/ui'
 import { addMinutes } from 'date-fns'
-import ms from 'ms'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { PriceImpactWarning } from 'src/app/(networks)/_ui/price-impact-warning'
 import { SlippageWarning } from 'src/app/(networks)/_ui/slippage-warning'

@@ -10,7 +10,7 @@ export function usePositionPrincipal(tokenId: number | undefined) {
   return useQuery({
     queryKey: ['stellar', 'position-principal', tokenId],
     queryFn: async () => {
-      if (tokenId === undefined || tokenId === null) {
+      if (tokenId === undefined) {
         return { amount0: 0n, amount1: 0n }
       }
 

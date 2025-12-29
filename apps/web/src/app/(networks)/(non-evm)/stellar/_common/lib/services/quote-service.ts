@@ -1,5 +1,4 @@
 import { addMinutes } from 'date-fns'
-import ms from 'ms'
 import {
   DEFAULT_TIMEOUT,
   getSqrtPriceLimitForSwap,
