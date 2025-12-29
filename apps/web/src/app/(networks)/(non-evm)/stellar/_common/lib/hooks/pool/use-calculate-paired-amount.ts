@@ -8,7 +8,7 @@ import {
   getCurrentSqrtPrice,
   tickToSqrtPrice,
 } from '../../soroban/pool-helpers'
-import { formatTokenAmountWithDecimals } from '../../utils/format'
+import { formatTokenAmount } from '../../utils/format'
 import { usePoolInitialized } from './use-pool-initialized'
 
 /**
@@ -101,10 +101,7 @@ export function useCalculatePairedAmount(
         )
 
         // Convert token1 amount back to token units
-        const pairedAmount = formatTokenAmountWithDecimals(
-          amounts.amount1,
-          decimals,
-        )
+        const pairedAmount = formatTokenAmount(amounts.amount1, decimals)
 
         // Check for invalid results
         if (amounts.amount1 < 0n) {

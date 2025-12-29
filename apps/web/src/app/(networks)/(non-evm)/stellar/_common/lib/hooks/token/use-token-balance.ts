@@ -67,7 +67,6 @@ export const useTokenBalances = (address: string | null, tokens: Token[]) => {
           tokensWithBalances.push({
             ...token,
             balance,
-            balanceFormatted: formatUnits(balance, token.decimals),
           })
         } catch (error) {
           console.error(

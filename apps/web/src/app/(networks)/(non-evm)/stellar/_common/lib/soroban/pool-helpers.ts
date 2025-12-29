@@ -1,6 +1,5 @@
 import type { PoolInfo, PoolLiquidity, PoolReserves } from '../types/pool.type'
 import type { Token } from '../types/token.type'
-import { formatTokenAmount } from '../utils/formatters'
 import { type OracleHints, fetchOracleHints } from '../utils/slot-hint-helpers'
 import { getPoolLensContractClient } from './client'
 import { contractAddresses } from './contracts'
@@ -112,27 +111,16 @@ export async function getPoolInfo(address: string): Promise<PoolInfo | null> {
 
     const liquidity: PoolLiquidity = {
       amount: contractPoolInfo.liquidity.toString(),
-      formatted: formatTokenAmount(contractPoolInfo.liquidity, 7, 2),
     }
 
     const reserves: PoolReserves = {
       token0: {
         code: contractPoolInfo.token0.code,
         amount: contractPoolInfo.reserve0.toString(),
-        formatted: formatTokenAmount(
-          contractPoolInfo.reserve0,
-          contractPoolInfo.token0.decimals,
-          2,
-        ),
       },
       token1: {
         code: contractPoolInfo.token1.code,
         amount: contractPoolInfo.reserve1.toString(),
-        formatted: formatTokenAmount(
-          contractPoolInfo.reserve1,
-          contractPoolInfo.token1.decimals,
-          2,
-        ),
       },
     }
 
@@ -180,12 +168,10 @@ export async function getPoolBalances(
     token0: {
       code: config.token0.code,
       amount: balance0.toString(),
-      formatted: formatTokenAmount(balance0, config.token0.decimals, 2),
     },
     token1: {
       code: config.token1.code,
       amount: balance1.toString(),
-      formatted: formatTokenAmount(balance1, config.token1.decimals, 2),
     },
   }
 }

@@ -1,10 +1,10 @@
 import { SkeletonText, classNames } from '@sushiswap/ui'
 import { WalletIcon } from '@sushiswap/ui/icons/WalletIcon'
 import React, { type FC, useMemo } from 'react'
-import { formatTokenAmount } from '~stellar/_common/lib/utils/formatters'
+import { formatTokenAmount } from '~stellar/_common/lib/utils/format'
 
 interface CurrencyInputBalancePanel {
-  coinData: number
+  coinData: bigint
   isLoading: boolean
   decimals: number
   onClick?: () => void

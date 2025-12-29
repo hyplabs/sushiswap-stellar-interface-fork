@@ -3,12 +3,11 @@
 import { createErrorToast, createToast } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addMinutes } from 'date-fns'
-import ms from 'ms'
 import { ChainId } from 'sushi'
 import { useStellarWallet } from '~stellar/providers'
 import { SwapService } from '../../services/swap-service'
 import type { Token } from '../../types/token.type'
-import { formatTokenAmountForDisplay } from '../../utils/format'
+import { formatTokenAmount } from '../../utils/format'
 import { getStellarTxnLink } from '../../utils/stellarchain-helpers'
 
 export interface MultiHopSwapExactInputParams {
@@ -56,11 +55,8 @@ export const useExecuteSwapExactInputMulti = () => {
         result.amountOut < 0n ? -result.amountOut : result.amountOut
       const tokenInDecimals = params.tokenIn?.decimals ?? 7
       const tokenOutDecimals = params.tokenOut?.decimals ?? 7
-      const amountOutFormatted = formatTokenAmountForDisplay(
-        amountOut,
-        tokenOutDecimals,
-      )
-      const amountInFormatted = formatTokenAmountForDisplay(
+      const amountOutFormatted = formatTokenAmount(amountOut, tokenOutDecimals)
+      const amountInFormatted = formatTokenAmount(
         params.amountIn,
         tokenInDecimals,
       )

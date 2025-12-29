@@ -15,7 +15,7 @@ import { useStellarWallet } from '~stellar/providers'
 import { SwapService } from '../../services/swap-service'
 import type { Token } from '../../types/token.type'
 import { extractErrorMessage } from '../../utils/error-helpers'
-import { formatTokenAmountForDisplay } from '../../utils/format'
+import { formatTokenAmount } from '../../utils/format'
 import { getStellarTxnLink } from '../../utils/stellarchain-helpers'
 
 export interface UseExecuteSwapParams {
@@ -40,7 +40,7 @@ export const useExecuteSwap = () => {
       // Show "in progress" toast immediately before transaction starts
       const timestamp = Date.now()
       const infoToastId = `info:swap-${nanoid()}`
-      const amountInFormatted = formatTokenAmountForDisplay(
+      const amountInFormatted = formatTokenAmount(
         params.amountIn,
         params.tokenIn.decimals,
       )
@@ -88,11 +88,11 @@ export const useExecuteSwap = () => {
 
       const amountOut =
         result.amountOut < 0n ? -result.amountOut : result.amountOut
-      const amountOutFormatted = formatTokenAmountForDisplay(
+      const amountOutFormatted = formatTokenAmount(
         amountOut,
         params.tokenOut.decimals,
       )
-      const amountInFormatted = formatTokenAmountForDisplay(
+      const amountInFormatted = formatTokenAmount(
         params.amountIn,
         params.tokenIn.decimals,
       )
@@ -155,7 +155,7 @@ export const useExecuteMultiHopSwap = () => {
       const timestamp = Date.now()
       const infoToastId = `info:multihop-swap-${nanoid()}`
       const tokenInDecimals = params.tokenIn?.decimals ?? 7
-      const amountInFormatted = formatTokenAmountForDisplay(
+      const amountInFormatted = formatTokenAmount(
         params.amountIn,
         tokenInDecimals,
       )
@@ -203,11 +203,8 @@ export const useExecuteMultiHopSwap = () => {
         result.amountOut < 0n ? -result.amountOut : result.amountOut
       const tokenInDecimals = params.tokenIn?.decimals ?? 7
       const tokenOutDecimals = params.tokenOut?.decimals ?? 7
-      const amountOutFormatted = formatTokenAmountForDisplay(
-        amountOut,
-        tokenOutDecimals,
-      )
-      const amountInFormatted = formatTokenAmountForDisplay(
+      const amountOutFormatted = formatTokenAmount(amountOut, tokenOutDecimals)
+      const amountInFormatted = formatTokenAmount(
         params.amountIn,
         tokenInDecimals,
       )

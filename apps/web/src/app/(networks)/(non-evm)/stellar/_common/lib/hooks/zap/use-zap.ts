@@ -11,7 +11,7 @@ import { ChainId } from 'sushi'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { Token } from '../../types/token.type'
 import { extractErrorMessage } from '../../utils/error-helpers'
-import { formatTokenAmountWithDecimals } from '../../utils/format'
+import { formatTokenAmount } from '../../utils/format'
 import { getStellarTxnLink } from '../../utils/stellarchain-helpers'
 
 export interface UseZapParams {
@@ -161,11 +161,11 @@ export const useZap = () => {
       // We use the remaining balances
 
       // Format back to string for addLiquidity params
-      const token0AmountStr = formatTokenAmountWithDecimals(
+      const token0AmountStr = formatTokenAmount(
         currentToken0Balance,
         token0.decimals,
       )
-      const token1AmountStr = formatTokenAmountWithDecimals(
+      const token1AmountStr = formatTokenAmount(
         currentToken1Balance,
         token1.decimals,
       )

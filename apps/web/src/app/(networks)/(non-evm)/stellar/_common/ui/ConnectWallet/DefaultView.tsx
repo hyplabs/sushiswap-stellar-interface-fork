@@ -19,8 +19,8 @@ import { getBaseTokens } from '~stellar/_common/lib/soroban/token-helpers'
 import type { Token } from '~stellar/_common/lib/types/token.type'
 import {
   formatAddress,
-  formatTokenBalance,
-} from '~stellar/_common/lib/utils/formatters'
+  formatTokenAmount,
+} from '~stellar/_common/lib/utils/format'
 import { getStellarAddressLink } from '~stellar/_common/lib/utils/stellarchain-helpers'
 import { useStellarWallet } from '~stellar/providers'
 import type { IProfileView } from './ConnectWalletButton'
@@ -145,7 +145,7 @@ export const DefaultView = ({ setView }: DefaultViewProps) => {
                       className="!py-2"
                     >
                       <span className="text-sm font-medium">
-                        {formatTokenBalance(token.balance, token)}
+                        {formatTokenAmount(token.balance, token.decimals, 2)}
                       </span>
                     </List.KeyValue>
                   ))

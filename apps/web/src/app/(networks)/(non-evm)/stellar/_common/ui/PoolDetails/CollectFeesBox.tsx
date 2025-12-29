@@ -191,9 +191,7 @@ export const CollectFeesBox: React.FC<CollectFeesBoxProps> = ({ pool }) => {
           <LiquidityItem
             isLoading={isLoading}
             token={pool.token0}
-            amount={Number.parseFloat(
-              formatTokenAmount(totalFees.token0, pool.token0.decimals),
-            ).toFixed(6)}
+            amount={formatTokenAmount(totalFees.token0, pool.token0.decimals)}
             usdAmount={(
               Number(
                 formatTokenAmount(totalFees.token0, pool.token0.decimals),
@@ -203,9 +201,7 @@ export const CollectFeesBox: React.FC<CollectFeesBoxProps> = ({ pool }) => {
           <LiquidityItem
             isLoading={isLoading}
             token={pool.token1}
-            amount={Number.parseFloat(
-              formatTokenAmount(totalFees.token1, pool.token1.decimals),
-            ).toFixed(6)}
+            amount={formatTokenAmount(totalFees.token1, pool.token1.decimals)}
             usdAmount={(
               Number(
                 formatTokenAmount(totalFees.token1, pool.token1.decimals),

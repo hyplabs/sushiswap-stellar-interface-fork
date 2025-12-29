@@ -9,7 +9,7 @@ import {
   getCurrentSqrtPrice,
   tickToSqrtPrice,
 } from '../../soroban/pool-helpers'
-import { formatTokenAmountWithDecimals } from '../../utils/format'
+import { formatTokenAmount } from '../../utils/format'
 import { usePoolInitialized } from './use-pool-initialized'
 
 export type Field = 'token0' | 'token1'
@@ -142,7 +142,7 @@ export function useCalculateDependentAmount(
           independentField === 'token0' ? amounts.amount1 : amounts.amount0
 
         // Convert dependent amount back to token units
-        const dependentAmountStr = formatTokenAmountWithDecimals(
+        const dependentAmountStr = formatTokenAmount(
           dependentAmountBigInt,
           dependentDecimals,
         )

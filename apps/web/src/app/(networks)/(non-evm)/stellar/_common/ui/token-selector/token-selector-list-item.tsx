@@ -2,7 +2,7 @@ import { CheckCircleIcon } from '@heroicons/react/20/solid'
 import { Badge, classNames } from '@sushiswap/ui'
 import React, { type CSSProperties } from 'react'
 import type { Token } from '~stellar/_common/lib/types/token.type'
-import { formatNumberWithDecimals } from '~stellar/_common/lib/utils/formatters'
+import { formatTokenAmount } from '~stellar/_common/lib/utils/format'
 import { TokenIcon } from '../General/TokenIcon'
 
 type TokenListItem = {
@@ -72,10 +72,7 @@ export function TokenListItem({
                   'text-right text-gray-900 dark:text-slate-50 truncate',
                 )}
               >
-                {formatNumberWithDecimals(
-                  Number(token.balance),
-                  token.decimals,
-                )}
+                {formatTokenAmount(BigInt(token.balance), token.decimals, 2)}
               </span>
             </div>
           ) : null}

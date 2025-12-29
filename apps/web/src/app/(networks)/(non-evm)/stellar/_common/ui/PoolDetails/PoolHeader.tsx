@@ -11,8 +11,8 @@ import {
   typographyVariants,
 } from '@sushiswap/ui'
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
+import { formatFee } from '~stellar/_common/lib/utils/format'
 import { usePoolInfo } from '../../lib/hooks/pool/use-pool-info'
-import { formatPoolFee } from '../../lib/utils/formatters'
 import { getStellarContractLink } from '../../lib/utils/stellarchain-helpers'
 import { TokenIcon } from '../General/TokenIcon'
 
@@ -78,7 +78,7 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
       <div className="flex flex-wrap items-center gap-y-5 gap-x-[32px] text-secondary-foreground mb-8 mt-1.5">
         <div className="flex items-center gap-1.5">
           <span className="tracking-tighter font-semibold">Fee</span>
-          {actualPool ? formatPoolFee(actualPool.fee) : '0%'}
+          {actualPool ? formatFee(actualPool.fee, 2) : '0%'}
         </div>
         <div className="flex items-center gap-1.5">
           <span className="tracking-tighter font-semibold">Network</span>
