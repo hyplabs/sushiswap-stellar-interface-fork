@@ -66,7 +66,10 @@ export const useTokenBalances = (address: string | null, tokens: Token[]) => {
             balanceFormatted: formatUnits(balance, token.decimals),
           })
         } catch (error) {
-          console.error(error)
+          console.error(
+            `Failed to get ${token.contract} token balance for ${address}`,
+            error,
+          )
         }
       }
       return tokensWithBalances

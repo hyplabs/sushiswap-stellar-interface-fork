@@ -80,7 +80,7 @@ export async function getPoolInfoFromContract(
       tick,
     }
   } catch (error) {
-    console.error('Failed to query pool contract:', error)
+    console.warn('Failed to query pool contract:', error)
     return null
   }
 }
@@ -96,7 +96,7 @@ export async function getPoolInfo(address: string): Promise<PoolInfo | null> {
 
     if (!contractPoolInfo) {
       console.warn(
-        `⚠️ Could not fetch pool configuration for: ${address} - Skipping`,
+        `Could not fetch pool configuration for: ${address} - Skipping`,
       )
       return null
     }
@@ -150,7 +150,7 @@ export async function getPoolInfo(address: string): Promise<PoolInfo | null> {
     }
   } catch (error) {
     // Pools with no liquidity or missing data are expected
-    console.warn(`⚠️ Skipping pool ${address} (likely empty or inactive)`, error)
+    console.warn(`Skipping pool ${address} (likely empty or inactive)`, error)
     return null
   }
 }

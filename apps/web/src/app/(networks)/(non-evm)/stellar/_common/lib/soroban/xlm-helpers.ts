@@ -27,7 +27,7 @@ export const getXlmBalance = async (address: string): Promise<bigint> => {
 
     return simResult
   } catch (error) {
-    console.error('❌ Error getting XLM balance:', error)
+    console.error('Error getting XLM balance:', error)
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,

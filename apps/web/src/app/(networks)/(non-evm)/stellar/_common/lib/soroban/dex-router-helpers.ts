@@ -45,9 +45,8 @@ export async function findPoolsBetweenTokens(
           fee: fee,
         })
       }
-    } catch (error) {
+    } catch (_error) {
       // Pool doesn't exist for this fee tier
-      console.warn(`Pool doesn't exist for fee tier ${fee}:`, error)
     }
   }
   return pools

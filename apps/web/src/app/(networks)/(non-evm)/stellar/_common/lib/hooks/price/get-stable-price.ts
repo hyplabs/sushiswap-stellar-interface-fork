@@ -105,7 +105,7 @@ const getTokenPriceDirectOrViaXlm = async (token?: Token): Promise<string> => {
       maxOutputAmountWithoutFees.outputToken.decimals,
     )
   } catch (error) {
-    console.error(error)
+    console.error('Failed to get stable price', error)
     return '0'
   }
 }

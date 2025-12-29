@@ -88,7 +88,7 @@ export async function createAndInitializePool({
         },
       )
       .catch((simError: unknown) => {
-        console.error('❌ Simulation error:', simError)
+        console.error('Simulation error:', simError)
         throw new Error(
           `Simulation failed: ${simError instanceof Error ? simError.message : String(simError)}`,
         )
@@ -120,7 +120,7 @@ export async function createAndInitializePool({
       throw new Error(`Transaction failed: ${JSON.stringify(txResult)}`)
     }
   } catch (error) {
-    console.error('❌ Error creating and initializing pool:', error)
+    console.error('Error creating and initializing pool:', error)
     throw error
   }
 }
@@ -215,7 +215,7 @@ export async function getPoolDirectSDK({
     // where Option<T> is defined as T | undefined
     return result ?? null
   } catch (error) {
-    console.error('Direct SDK getPool error:', error)
+    console.warn('Direct SDK getPool error:', error)
     return null
   }
 }

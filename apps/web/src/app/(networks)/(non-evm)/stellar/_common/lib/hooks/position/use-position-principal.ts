@@ -19,7 +19,7 @@ export function usePositionPrincipal(tokenId: number | undefined) {
         return result
       } catch (error) {
         console.error(
-          `❌ Failed to get principal amounts for position ${tokenId}:`,
+          `Failed to get principal amounts for position ${tokenId}:`,
           error,
         )
         return { amount0: 0n, amount1: 0n }
