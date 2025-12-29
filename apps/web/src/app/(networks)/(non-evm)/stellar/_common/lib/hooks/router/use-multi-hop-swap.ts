@@ -2,6 +2,7 @@
 
 import { createErrorToast, createToast } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ChainId } from 'sushi'
 import { useStellarWallet } from '~stellar/providers'
 import { SwapService } from '../../services/swap-service'
 import type { Token } from '../../types/token.type'
@@ -63,7 +64,7 @@ export const useExecuteSwapExactInputMulti = () => {
       createToast({
         account: params.userAddress,
         type: 'swap',
-        chainId: 1, // Stellar testnet
+        chainId: ChainId.STELLAR,
         txHash: result.txHash,
         href: getStellarTxnLink(result.txHash),
         promise: Promise.resolve(result),

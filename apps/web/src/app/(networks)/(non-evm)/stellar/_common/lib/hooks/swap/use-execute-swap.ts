@@ -8,6 +8,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { nanoid } from 'nanoid'
 import { toast } from 'react-toastify'
+import { ChainId } from 'sushi'
 import { useStellarWallet } from '~stellar/providers'
 import { SwapService } from '../../services/swap-service'
 import type { Token } from '../../types/token.type'
@@ -46,7 +47,7 @@ export const useExecuteSwap = () => {
         summary: `Swapping ${amountInFormatted} ${params.tokenIn.code} for ${params.tokenOut.code}...`,
         type: 'swap',
         account: params.userAddress,
-        chainId: 1,
+        chainId: ChainId.STELLAR,
         groupTimestamp: timestamp,
         timestamp,
         txHash: infoToastId, // Use as toast ID for dismissal
@@ -96,7 +97,7 @@ export const useExecuteSwap = () => {
         summary: `Swapped ${amountInFormatted} ${params.tokenIn.code} for ${amountOutFormatted} ${params.tokenOut.code}`,
         type: 'swap',
         account: params.userAddress,
-        chainId: 1,
+        chainId: ChainId.STELLAR,
         txHash: result.txHash,
         href: getStellarTxnLink(result.txHash),
         groupTimestamp: Date.now(),
@@ -159,7 +160,7 @@ export const useExecuteMultiHopSwap = () => {
         summary: `Swapping ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${params.tokenOut?.code || 'tokens'}...`,
         type: 'swap',
         account: params.userAddress,
-        chainId: 1,
+        chainId: ChainId.STELLAR,
         groupTimestamp: timestamp,
         timestamp,
         txHash: infoToastId, // Use as toast ID for dismissal
@@ -209,7 +210,7 @@ export const useExecuteMultiHopSwap = () => {
         summary: `Swapped ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${amountOutFormatted} ${params.tokenOut?.code || 'tokens'}`,
         type: 'swap',
         account: params.userAddress,
-        chainId: 1,
+        chainId: ChainId.STELLAR,
         txHash: result.txHash,
         href: getStellarTxnLink(result.txHash),
         groupTimestamp: Date.now(),

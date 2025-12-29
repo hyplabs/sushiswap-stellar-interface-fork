@@ -6,6 +6,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ChainId } from 'sushi'
 import { decreaseLiquidity } from '~stellar/_common/lib/soroban/position-manager-helpers'
 import { getStellarTxnLink } from '~stellar/_common/lib/utils/stellarchain-helpers'
 import { useStellarWallet } from '~stellar/providers'
@@ -34,7 +35,7 @@ export const useRemoveLiquidity = () => {
           summary: 'Removing liquidity...',
           type: 'burn',
           account: connectedAddress,
-          chainId: 1,
+          chainId: ChainId.STELLAR,
           groupTimestamp: timestamp,
           timestamp,
         })
@@ -68,7 +69,7 @@ export const useRemoveLiquidity = () => {
         summary: `Liquidity removed!`,
         type: 'burn',
         account: connectedAddress || undefined,
-        chainId: 1,
+        chainId: ChainId.STELLAR,
         txHash: result.decreaseHash,
         href: getStellarTxnLink(result.decreaseHash),
         groupTimestamp: Date.now(),

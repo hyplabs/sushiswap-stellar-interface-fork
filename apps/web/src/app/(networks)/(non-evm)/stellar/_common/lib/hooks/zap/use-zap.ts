@@ -6,6 +6,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ChainId } from 'sushi'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { Token } from '../../types/token.type'
 import { extractErrorMessage } from '../../utils/error-helpers'
@@ -39,7 +40,7 @@ export const useZap = () => {
         summary: 'Adding Liquidity...',
         type: 'mint',
         account: params.userAddress,
-        chainId: 1, // Stellar doesn't have chainId like EVM, using 1 as placeholder or generic
+        chainId: ChainId.STELLAR,
         groupTimestamp: timestamp,
         timestamp,
       })
@@ -200,7 +201,7 @@ export const useZap = () => {
         summary: 'Liquidity added successfully',
         type: 'mint',
         account: params.userAddress,
-        chainId: 1,
+        chainId: ChainId.STELLAR,
         txHash: addLiqResult.txHash,
         href: getStellarTxnLink(addLiqResult.txHash),
         groupTimestamp: Date.now(),

@@ -29,13 +29,6 @@ export const useGetQuote = (params: UseGetQuoteParams) => {
         params.tokenOut,
         params.amountIn,
       )
-      if (route) {
-        console.log('Quote received:', {
-          amountOut: route.amountOut,
-          route: service.formatRoute(route),
-          priceImpact: route.priceImpact,
-        })
-      }
       return route
     },
     enabled: params.enabled !== false && params.amountIn > 0n,

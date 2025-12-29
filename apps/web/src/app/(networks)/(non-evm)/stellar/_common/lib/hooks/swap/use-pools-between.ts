@@ -23,9 +23,6 @@ export const usePoolsBetween = (params: UsePoolsBetweenParams) => {
     ],
     queryFn: async () => {
       const pools = await service.getPoolsBetween(params.tokenA, params.tokenB)
-      console.log(
-        `Found ${pools.length} pools between ${params.tokenA.code} and ${params.tokenB.code}`,
-      )
       return pools
     },
     enabled: params.enabled !== false,
