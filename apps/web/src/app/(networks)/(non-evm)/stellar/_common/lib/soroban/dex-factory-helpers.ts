@@ -51,7 +51,6 @@ export async function createAndInitializePool({
     const [token0, token1] = isAddressLower(tokenA, tokenB)
       ? [tokenA, tokenB]
       : [tokenB, tokenA]
-    console.log('🏭 Ordered tokens:', { token0, token1 })
 
     // Check if pool already exists
     const existingPool = await getPoolDirectSDK({
@@ -74,12 +73,7 @@ export async function createAndInitializePool({
       contractId: contractAddresses.FACTORY,
       publicKey: sourceAccount,
     })
-    console.log('📤 Simulating transaction to calculate resources...')
-    console.log('🏭 Factory address:', factoryContractClient.options.contractId)
-    console.log('🏭 Token0 address:', token0)
-    console.log('🏭 Token1 address:', token1)
-    console.log('🏭 Fee:', fee)
-    console.log('🏭 Initial sqrt price:', sqrtPriceX96)
+
     const assembledTransaction = await factoryContractClient
       .create_and_initialize_pool(
         {
@@ -103,30 +97,19 @@ export async function createAndInitializePool({
     // Convert to XDR for signing
     const transactionXdr = assembledTransaction.toXDR()
 
-    console.log('🔏 Waiting for wallet signature...')
-
     // Sign the transaction
     const signedXdr = await signTransaction(transactionXdr)
-
-    console.log('📨 Submitting transaction to network...')
 
     // Submit the transaction
 
     const submitResult = await submitTransaction(signedXdr)
 
-    console.log(`Transaction submitted: ${submitResult.hash}`)
-    console.log('⏳ Waiting for confirmation...')
-
     // Wait for confirmation
     const txResult = await waitForTransaction(submitResult.hash, 60000, 2)
 
     if (txResult.status === 'SUCCESS' && txResult.returnValue !== undefined) {
-      console.log('✅ Transaction confirmed!')
-
       // Extract pool address from result
       const poolAddress = Address.fromScVal(txResult.returnValue).toString()
-
-      console.log('🎉 Pool created and initialized:', poolAddress)
 
       return {
         poolAddress,
@@ -216,8 +199,6 @@ export async function getPoolDirectSDK({
       ? [tokenA, tokenB]
       : [tokenB, tokenA]
 
-    console.log('Direct SDK approach - checking pool:', token0, token1, fee)
-
     // Create contract instance using direct SDK approach
     const factoryContractClient = getFactoryContractClient({
       contractId: contractAddresses.FACTORY,
@@ -229,8 +210,6 @@ export async function getPoolDirectSDK({
       fee: fee,
     })
     const result = assembledTransaction.result
-
-    console.log('Direct SDK result:', result)
 
     // Handle the result - it should be an Option<string>
     // where Option<T> is defined as T | undefined

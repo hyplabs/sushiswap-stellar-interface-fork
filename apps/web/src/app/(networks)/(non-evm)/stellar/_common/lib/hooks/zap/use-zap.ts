@@ -112,10 +112,6 @@ export const useZap = () => {
           queryKey: ['stellar', 'pool', 'balances'],
         })
         queryClient.invalidateQueries({ queryKey: ['stellar', 'pool', 'info'] })
-
-        console.log(
-          'Swaps completed for external token, waiting for network state to update...',
-        )
       } else {
         // Case: tokenIn is one of the pool tokens - swap 50% to the other token
         const halfAmount = amountInBigInt / 2n
@@ -158,11 +154,6 @@ export const useZap = () => {
           queryKey: ['stellar', 'pool', 'balances'],
         })
         queryClient.invalidateQueries({ queryKey: ['stellar', 'pool', 'info'] })
-
-        console.log(
-          'Swap completed, waiting for network state to update...',
-          swapResult.txHash,
-        )
       }
 
       // 3. Add Liquidity

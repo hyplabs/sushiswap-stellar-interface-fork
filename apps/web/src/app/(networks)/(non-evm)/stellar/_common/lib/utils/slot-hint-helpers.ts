@@ -42,9 +42,6 @@ export async function fetchOracleHints(
       if (attempt < maxRetries) {
         // Wait 1 second before retry (minute boundary may have just passed)
         await new Promise((resolve) => setTimeout(resolve, 1000))
-        console.log(
-          `Retrying oracle hints fetch (attempt ${attempt + 2}/${maxRetries + 1})...`,
-        )
       }
     }
   }
@@ -115,9 +112,6 @@ export async function executeWithOracleHints<T>(
 
       // Only retry if it's an oracle/footprint error
       if (isObservationTooOldError(error) && attempt < maxRetries) {
-        console.log(
-          `Oracle footprint error detected, retrying with fresh hints (attempt ${attempt + 2}/${maxRetries + 1})...`,
-        )
         // Wait 1 second before retry (minute boundary may have just passed)
         await new Promise((resolve) => setTimeout(resolve, 1000))
         continue

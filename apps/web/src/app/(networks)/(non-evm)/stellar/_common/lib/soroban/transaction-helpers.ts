@@ -24,8 +24,6 @@ export async function submitTransaction(signedTxXdr: string): Promise<{
     // Submit the transaction to the network
     const result = await SorobanClient.sendTransaction(transaction)
 
-    console.log('sent txn', result)
-
     return {
       hash: result.hash,
       result,
@@ -76,7 +74,6 @@ export async function waitForTransaction(
   while (Date.now() - startTime < timeout) {
     try {
       const result = await SorobanClient.getTransaction(hash)
-      console.log('result', result)
       if (result.status === 'SUCCESS') {
         // Wait for 1 ledger to ensure finality while sharing timeout
         await waitForLedgerPropagation(

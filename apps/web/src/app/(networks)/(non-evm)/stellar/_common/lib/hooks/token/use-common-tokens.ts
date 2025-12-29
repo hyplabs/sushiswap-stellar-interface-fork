@@ -104,10 +104,6 @@ const fetchCommonTokensQueryFn = async (): Promise<Record<string, Token>> => {
       // Use uppercase keys for consistency
       result[token.contract.toUpperCase()] = token
     })
-
-    console.log(
-      `[useCommonTokens] Fetched ${hardcodedTokens.length} hardcoded + ${stellarTokens.length} StellarExpert = ${Object.keys(result).length} total tokens`,
-    )
   } catch (error) {
     console.warn(
       `[useCommonTokens] StellarExpert failed, using ${hardcodedTokens.length} hardcoded tokens only:`,

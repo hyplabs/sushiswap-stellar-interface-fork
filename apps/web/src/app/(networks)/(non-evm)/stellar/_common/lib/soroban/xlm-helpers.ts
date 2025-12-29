@@ -8,15 +8,10 @@ import { contractAddresses } from './contracts'
  */
 export const getXlmBalance = async (address: string): Promise<bigint> => {
   try {
-    console.log('🔍 Fetching XLM balance for:', address)
-    console.log('📝 XLM Contract Address:', contractAddresses.TOKENS.XLM)
-
     const xlmContractClient = getTokenContractClient({
       contractId: contractAddresses.TOKENS.XLM,
       // No publicKey needed for read-only balance queries
     })
-
-    console.log('📤 Simulating balance query transaction...')
 
     // Simulate the transaction
     const assembledTransaction = await xlmContractClient.balance(
@@ -29,8 +24,6 @@ export const getXlmBalance = async (address: string): Promise<bigint> => {
       },
     )
     const simResult = assembledTransaction.result
-
-    console.log('📥 Simulation result:', simResult)
 
     return simResult
   } catch (error) {

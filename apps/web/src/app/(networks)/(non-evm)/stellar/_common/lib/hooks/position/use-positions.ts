@@ -98,9 +98,7 @@ export function useCollectFees() {
         signAuthEntry,
       )
     },
-    onSuccess: (result, variables) => {
-      console.log('Fees collected successfully:', result)
-
+    onSuccess: (_result, variables) => {
       // Invalidate position queries to refresh data
       queryClient.invalidateQueries({
         queryKey: ['stellar', 'positions', 'user', variables.recipient],

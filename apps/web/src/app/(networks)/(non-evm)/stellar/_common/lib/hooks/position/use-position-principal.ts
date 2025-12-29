@@ -16,10 +16,6 @@ export function usePositionPrincipal(tokenId: number | undefined) {
 
       try {
         const result = await positionService.getPositionPrincipal(tokenId)
-        console.log(`✅ Principal amounts for position ${tokenId}:`, {
-          amount0: result.amount0.toString(),
-          amount1: result.amount1.toString(),
-        })
         return result
       } catch (error) {
         console.error(

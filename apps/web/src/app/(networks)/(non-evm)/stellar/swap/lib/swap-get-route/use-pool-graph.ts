@@ -81,13 +81,11 @@ const convertPoolDataToVertex = (pools: PoolData[]): Vertex[] => {
   const vertices = pools.map((pool) => {
     // Skip uninitialized pools (sqrt_price_x96 = 0)
     if (pool.sqrtPriceX96 === 0n) {
-      console.log(`⚠️ Skipping uninitialized pool: ${pool.poolAddress}`)
       return null
     }
 
     // Skip pools with zero liquidity
     if (pool.liquidity === 0n) {
-      console.log(`⚠️ Skipping pool with zero liquidity: ${pool.poolAddress}`)
       return null
     }
 
@@ -396,9 +394,6 @@ export function usePoolGraph({
         return baseGraph
       }
 
-      console.log(
-        `[usePoolGraph] Augmenting graph with ${newTokens.length} additional tokens`,
-      )
       return augmentPoolGraph({ baseGraph, additionalTokens: newTokens })
     },
     enabled: !!baseGraph,

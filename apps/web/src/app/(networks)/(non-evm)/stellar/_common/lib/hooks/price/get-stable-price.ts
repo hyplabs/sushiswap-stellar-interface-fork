@@ -105,7 +105,7 @@ const getTokenPriceDirectOrViaXlm = async (token?: Token): Promise<string> => {
       maxOutputAmountWithoutFees.outputToken.decimals,
     )
   } catch (error) {
-    console.log(error)
+    console.error(error)
     return '0'
   }
 }
