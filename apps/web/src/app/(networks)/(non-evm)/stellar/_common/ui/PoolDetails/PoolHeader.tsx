@@ -11,7 +11,7 @@ import {
   typographyVariants,
 } from '@sushiswap/ui'
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
-import { formatFee } from '~stellar/_common/lib/utils/format'
+import { formatAddress, formatFee } from '~stellar/_common/lib/utils/format'
 import { usePoolInfo } from '../../lib/hooks/pool/use-pool-info'
 import { getStellarContractLink } from '../../lib/utils/stellarchain-helpers'
 import { TokenIcon } from '../General/TokenIcon'
@@ -109,9 +109,7 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
                   size="sm"
                   className="!font-medium !text-secondary-foreground"
                 >
-                  {`${actualPool.token0.contract.slice(0, 6)}...${actualPool.token0.contract.slice(
-                    -4,
-                  )}`}
+                  {formatAddress(actualPool.token0.contract)}
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </Button>
               </LinkExternal>
@@ -130,9 +128,7 @@ export const PoolHeader = ({ pool, backUrl, address }: PoolHeaderProps) => {
                   size="sm"
                   className="!font-medium !text-secondary-foreground"
                 >
-                  {`${actualPool.token1.contract.slice(0, 6)}...${actualPool.token1.contract.slice(
-                    -4,
-                  )}`}
+                  {formatAddress(actualPool.token1.contract)}
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </Button>
               </LinkExternal>

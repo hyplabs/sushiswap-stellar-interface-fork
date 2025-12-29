@@ -8,6 +8,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChainId } from 'sushi'
 import { createAndInitializePool } from '../../soroban/dex-factory-helpers'
+import { formatAddress } from '../../utils/format'
 import { getStellarTxnLink } from '../../utils/stellarchain-helpers'
 import { invalidatePoolInitializedQuery } from '../pool/use-pool-initialized'
 
@@ -50,7 +51,7 @@ export const useCreateAndInitializePool = () => {
     onSuccess: ({ result, params: variables }) => {
       // Show success toast with Stellar explorer link
       createSuccessToast({
-        summary: `Initialized pool ${result.txHash !== undefined ? 'created successfully' : 'already exists'} at ${result.poolAddress.substring(0, 8)}...`,
+        summary: `Initialized pool ${result.txHash !== undefined ? 'created successfully' : 'already exists'} at ${formatAddress(result.poolAddress)}...`,
         type: 'swap',
         account: variables.userAddress,
         chainId: ChainId.STELLAR,
