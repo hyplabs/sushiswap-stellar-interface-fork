@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import ms from 'ms'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { Token } from '../../types/token.type'
 
@@ -26,6 +27,6 @@ export const usePoolsBetween = (params: UsePoolsBetweenParams) => {
       return pools
     },
     enabled: Boolean(params.enabled !== false),
-    staleTime: 60000, // 1 minute
+    staleTime: ms('1m'),
   })
 }

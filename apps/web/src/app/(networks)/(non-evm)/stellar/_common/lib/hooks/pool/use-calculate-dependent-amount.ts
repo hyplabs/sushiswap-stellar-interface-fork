@@ -170,6 +170,6 @@ export function useCalculateDependentAmount(
       }
     },
     enabled: Boolean(poolAddress && initialized),
-    staleTime: ms('10s'), // 10 seconds
+    staleTime: ms('10s'),
   })
 }

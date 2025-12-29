@@ -1,6 +1,7 @@
 import type { Transaction, xdr } from '@stellar/stellar-sdk'
 import { Account, TransactionBuilder } from '@stellar/stellar-sdk'
 import type { rpc } from '@stellar/stellar-sdk'
+import ms from 'ms'
 import { NETWORK_PASSPHRASE } from '../constants'
 import { SorobanClient } from './client'
 import { DEFAULT_TIMEOUT } from './constants'
@@ -66,7 +67,7 @@ export async function buildTransaction<T extends xdr.Operation>(
  */
 export async function waitForTransaction(
   hash: string,
-  timeout = 30000,
+  timeout = ms('30s'),
   ledgersToWait = 1,
 ): Promise<rpc.Api.GetTransactionResponse> {
   const startTime = Date.now()
@@ -88,13 +89,13 @@ export async function waitForTransaction(
     } catch (error) {
       // Transaction might not be available yet, continue waiting
       if (error instanceof Error && error.message?.includes('not found')) {
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, ms('1s')))
         continue
       }
       throw error
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, ms('1s')))
   }
 
   throw new Error('Transaction confirmation timeout')
@@ -127,7 +128,7 @@ async function waitForLedgerPropagation(
     if (currentLedger.sequence >= targetLedger) {
       return
     }
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, ms('1s')))
   }
   throw new Error('Ledger wait timeout exceeded')
 }

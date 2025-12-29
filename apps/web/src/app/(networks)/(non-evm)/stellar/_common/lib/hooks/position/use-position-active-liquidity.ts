@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import ms from 'ms'
 import {
   calculateActiveLiquidity,
   getCurrentSqrtPrice,
@@ -65,6 +66,6 @@ export function usePositionActiveLiquidity({
       }
     },
     enabled: Boolean(poolAddress),
-    staleTime: 10000, // 10 seconds
+    staleTime: ms('10s'),
   })
 }

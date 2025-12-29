@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import ms from 'ms'
 import { z } from 'zod'
 import { staticTokens } from '~stellar/_common/lib/assets/token-assets'
 import { IS_TESTNET } from '~stellar/_common/lib/constants'
@@ -119,8 +120,8 @@ export function useCommonTokens() {
     queryKey: ['stellar', 'common-tokens'],
     queryFn: () => fetchCommonTokensQueryFn(),
     placeholderData: keepPreviousData,
-    staleTime: 3600000,
-    gcTime: 86400000,
+    staleTime: ms('1h'),
+    gcTime: ms('1d'),
     retry: 1,
   })
 }

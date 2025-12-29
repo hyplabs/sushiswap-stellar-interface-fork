@@ -97,6 +97,6 @@ export function useMaxPairedAmount(
         tickLower !== null &&
         tickUpper !== null,
     ),
-    staleTime: ms('10s'), // 10 seconds
+    staleTime: ms('10s'),
   })
 }

@@ -1,3 +1,4 @@
+import ms from 'ms'
 import {
   DEFAULT_TIMEOUT,
   getSqrtPriceLimitForSwap,
@@ -76,7 +77,7 @@ export class QuoteService {
             amount_in: params.amountIn,
             // Unused by the contract function implementation, but required
             amount_out_minimum: 0n,
-            deadline: BigInt(Math.floor(Date.now() / 1000) + 600), // 10 minutes
+            deadline: BigInt(Math.floor((Date.now() + ms('10m')) / 1000)),
             sender: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', // Zero address for quote
             recipient:
               'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', // Zero address for quote
@@ -126,7 +127,7 @@ export class QuoteService {
             amount_in: params.amountIn,
             // Unused by the contract function implementation, but required
             amount_out_minimum: 0n,
-            deadline: BigInt(Math.floor(Date.now() / 1000) + 600), // 10 minutes
+            deadline: BigInt(Math.floor((Date.now() + ms('10m')) / 1000)),
             sender: 'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', // Zero address for quote
             recipient:
               'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF', // Zero address for quote

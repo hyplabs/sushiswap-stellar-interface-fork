@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import ms from 'ms'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { Token } from '../../types/token.type'
 
@@ -32,7 +33,7 @@ export const useGetQuote = (params: UseGetQuoteParams) => {
       return route
     },
     enabled: Boolean(params.enabled !== false && params.amountIn > 0n),
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 10000, // 10 seconds
+    staleTime: ms('30s'),
+    refetchInterval: ms('10s'),
   })
 }

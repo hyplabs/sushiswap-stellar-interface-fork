@@ -128,12 +128,3 @@ export function calculateAmountInMaximum(
   const slippageMultiplier = BigInt(10000 + slippageBps)
   return (amountIn * slippageMultiplier) / BigInt(10000)
 }
-
-/**
- * Calculate deadline timestamp
- * @param minutesFromNow - Minutes from current time
- * @returns Deadline timestamp
- */
-export function calculateDeadline(minutesFromNow = 20): bigint {
-  return BigInt(Math.floor(Date.now() / 1000) + minutesFromNow * 60)
-}

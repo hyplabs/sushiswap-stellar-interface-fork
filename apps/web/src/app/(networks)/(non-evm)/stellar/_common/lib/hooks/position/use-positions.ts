@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import ms from 'ms'
 import { positionService } from '../../services/position-service'
 
 /**
@@ -30,7 +31,7 @@ export function useUserPositions({
       }
     },
     enabled: Boolean(userAddress),
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: ms('1m'),
     retry: false, // Don't retry on error to see the error immediately
   })
 }
@@ -48,7 +49,7 @@ export function usePosition(tokenId: number | undefined) {
       return await positionService.getPosition(tokenId)
     },
     enabled: Boolean(tokenId !== undefined),
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: ms('1m'),
   })
 }
 
@@ -65,7 +66,7 @@ export function useUncollectedFees(tokenId: number | undefined) {
       return await positionService.getUncollectedFees(tokenId)
     },
     enabled: Boolean(tokenId !== undefined),
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: ms('30s'),
   })
 }
 

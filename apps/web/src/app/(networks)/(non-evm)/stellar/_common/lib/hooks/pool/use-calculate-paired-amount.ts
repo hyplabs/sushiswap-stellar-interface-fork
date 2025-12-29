@@ -135,6 +135,6 @@ export function useCalculatePairedAmount(
         tickUpper !== null &&
         decimals !== null,
     ),
-    staleTime: ms('10s'), // 10 seconds
+    staleTime: ms('10s'),
   })
 }

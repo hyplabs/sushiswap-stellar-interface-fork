@@ -6,6 +6,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import ms from 'ms'
 import { ChainId } from 'sushi'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { Token } from '../../types/token.type'
@@ -91,7 +92,7 @@ export const useZap = () => {
         currentToken0Balance = swapToToken0Result.amountOut
 
         // Add delay between swaps
-        await new Promise((resolve) => setTimeout(resolve, 8000))
+        await new Promise((resolve) => setTimeout(resolve, ms('8s')))
 
         // Swap remaining amount to token1
         const swapToToken1Result = await service.swapWithRouting(
@@ -105,7 +106,7 @@ export const useZap = () => {
         currentToken1Balance = swapToToken1Result.amountOut
 
         // Add delay to ensure Stellar nodes have fully processed the swap transactions
-        await new Promise((resolve) => setTimeout(resolve, 8000))
+        await new Promise((resolve) => setTimeout(resolve, ms('8s')))
 
         // Invalidate balances to reflect swaps in UI
         queryClient.invalidateQueries({
@@ -147,7 +148,7 @@ export const useZap = () => {
         }
 
         // Add delay to ensure Stellar nodes have fully processed the swap transaction
-        await new Promise((resolve) => setTimeout(resolve, 8000))
+        await new Promise((resolve) => setTimeout(resolve, ms('8s')))
 
         // Invalidate balances to reflect swap in UI immediately (before add liquidity)
         queryClient.invalidateQueries({

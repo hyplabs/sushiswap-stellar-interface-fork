@@ -4,6 +4,7 @@ import {
   createSuccessToast,
 } from '@sushiswap/notifications'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import ms from 'ms'
 import { ChainId } from 'sushi'
 import { useStellarWallet } from '~stellar/providers'
 import {
@@ -72,7 +73,7 @@ export function useHasTrustline(assetCode: string, assetIssuer: string) {
       return await hasTrustline(connectedAddress, assetCode, assetIssuer)
     },
     enabled: Boolean(connectedAddress && assetIssuer),
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: ms('30s'),
   })
 }
 
@@ -91,7 +92,7 @@ export function useUserTrustlines() {
       return await getUserTrustlines(connectedAddress)
     },
     enabled: Boolean(connectedAddress),
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: ms('1m'),
   })
 }
 
@@ -202,7 +203,7 @@ export function useNeedsTrustlines(
       )
     },
     enabled: Boolean(connectedAddress),
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: ms('30s'),
   })
 
   const defaultResults = tokens.map(() => NO_TRUSTLINE_NEEDED)

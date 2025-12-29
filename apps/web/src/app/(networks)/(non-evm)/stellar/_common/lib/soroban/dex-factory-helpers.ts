@@ -1,4 +1,5 @@
 import { Address } from '@stellar/stellar-sdk'
+import ms from 'ms'
 import { FEE_TIERS } from '../utils/ticks'
 import { getFactoryContractClient } from './client'
 import { DEFAULT_TIMEOUT, isAddressLower } from './constants'
@@ -105,7 +106,7 @@ export async function createAndInitializePool({
     const submitResult = await submitTransaction(signedXdr)
 
     // Wait for confirmation
-    const txResult = await waitForTransaction(submitResult.hash, 60000, 2)
+    const txResult = await waitForTransaction(submitResult.hash, ms('1m'), 2)
 
     if (txResult.status === 'SUCCESS' && txResult.returnValue !== undefined) {
       // Extract pool address from result

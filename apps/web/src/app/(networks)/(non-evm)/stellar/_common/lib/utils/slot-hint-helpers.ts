@@ -1,3 +1,4 @@
+import ms from 'ms'
 import { getPoolContractClient } from '../soroban/client'
 
 /**
@@ -41,7 +42,7 @@ export async function fetchOracleHints(
 
       if (attempt < maxRetries) {
         // Wait 1 second before retry (minute boundary may have just passed)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, ms('1s')))
       }
     }
   }
@@ -113,7 +114,7 @@ export async function executeWithOracleHints<T>(
       // Only retry if it's an oracle/footprint error
       if (isObservationTooOldError(error) && attempt < maxRetries) {
         // Wait 1 second before retry (minute boundary may have just passed)
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, ms('1s')))
         continue
       }
 

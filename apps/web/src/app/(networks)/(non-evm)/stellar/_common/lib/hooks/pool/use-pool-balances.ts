@@ -17,6 +17,6 @@ export const usePoolBalances = (
       return await getPoolBalances(address, connectedAddress)
     },
     enabled: Boolean(address && connectedAddress),
-    staleTime: ms('10s'), // 10 seconds
+    staleTime: ms('10s'),
   })
 }

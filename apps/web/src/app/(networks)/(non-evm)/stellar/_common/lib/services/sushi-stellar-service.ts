@@ -1,3 +1,4 @@
+import ms from 'ms'
 import { getPoolInfoFromContract } from '../soroban/pool-helpers'
 import {
   decreaseLiquidity,
@@ -53,7 +54,7 @@ export class SushiStellarService {
     )
 
     const deadline = BigInt(
-      params.deadline || Math.floor(Date.now() / 1000) + 300,
+      params.deadline || Math.floor((Date.now() + ms('5m')) / 1000),
     )
 
     // Always fetch pool info from contract (no more dynamic import needed)
@@ -223,7 +224,7 @@ export class SushiStellarService {
       slippage,
     )
 
-    const deadline = Math.floor(Date.now() / 1000) + 300 // 5 minutes
+    const deadline = Math.floor((Date.now() + ms('5m')) / 1000)
 
     let result: { txHash: string; amountOut: bigint }
 
@@ -312,7 +313,9 @@ export class SushiStellarService {
       liquidity: params.liquidity,
       amount0Min: BigInt(0),
       amount1Min: BigInt(0),
-      deadline: BigInt(params.deadline || Math.floor(Date.now() / 1000) + 300),
+      deadline: BigInt(
+        params.deadline || Math.floor((Date.now() + ms('5m')) / 1000),
+      ),
       operator: userAddress,
       sourceAccount: userAddress,
       signTransaction,

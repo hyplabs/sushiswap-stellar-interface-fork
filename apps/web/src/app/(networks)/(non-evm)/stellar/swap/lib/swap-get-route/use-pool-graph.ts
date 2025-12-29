@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import ms from 'ms'
 import { useMemo } from 'react'
 import { staticTokens } from '~stellar/_common/lib/assets/token-assets'
 import { getFees } from '~stellar/_common/lib/soroban'
@@ -245,10 +246,11 @@ function useBasePoolGraph() {
         }
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: ms('5m'),
+    gcTime: ms('10m'),
     retry: 3, // Retry up to 3 times on RPC failures
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
+    retryDelay: (attemptIndex) =>
+      Math.min(ms('1s') * 2 ** attemptIndex, ms('10s')), // Exponential backoff
     throwOnError: false, // Don't throw errors to prevent app crash
   })
 }
@@ -397,8 +399,8 @@ export function usePoolGraph({
       return augmentPoolGraph({ baseGraph, additionalTokens: newTokens })
     },
     enabled: Boolean(baseGraph),
-    staleTime: 1000 * 60 * 2, // 2 minutes for augmented graph
-    gcTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: ms('2m'),
+    gcTime: ms('5m'),
     retry: 1,
     throwOnError: false,
   })

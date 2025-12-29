@@ -20,6 +20,6 @@ export const useDayVolumeUSD = ({ pairAddress }: { pairAddress?: string }) => {
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
-    staleTime: ms('15 minutes'),
+    staleTime: ms('15m'),
   })
 }
