@@ -1,7 +1,7 @@
 import { SkeletonText, classNames } from '@sushiswap/ui'
 import { WalletIcon } from '@sushiswap/ui/icons/WalletIcon'
 import React, { type FC, useMemo } from 'react'
-import { formatTokenAmount } from '~stellar/_common/lib/utils/format'
+import { formatUnits } from 'viem'
 
 interface CurrencyInputBalancePanel {
   coinData: bigint
@@ -20,7 +20,7 @@ export const CurrencyInputBalancePanel: FC<CurrencyInputBalancePanel> = ({
 }) => {
   const [big, portion] = useMemo(
     () =>
-      (coinData ? formatTokenAmount(coinData, decimals, 2) : '0.00').split('.'),
+      Number.parseFloat(formatUnits(coinData, decimals)).toFixed(2).split('.'),
     [coinData, decimals],
   )
 

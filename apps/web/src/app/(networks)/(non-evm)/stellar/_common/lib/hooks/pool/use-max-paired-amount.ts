@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import ms from 'ms'
-import { formatTokenAmount } from '../../utils/format'
+import { formatUnits } from 'viem'
 import { useCalculatePairedAmount } from './use-calculate-paired-amount'
 import { usePoolInitialized } from './use-pool-initialized'
 
@@ -21,7 +21,7 @@ export function useMaxPairedAmount(
   const { data: initialized } = usePoolInitialized(poolAddress)
   const { data: pairedAmountData } = useCalculatePairedAmount(
     poolAddress,
-    formatTokenAmount(BigInt(token0Balance), token0Decimals),
+    formatUnits(BigInt(token0Balance), token0Decimals),
     tickLower,
     tickUpper,
     token0Decimals,

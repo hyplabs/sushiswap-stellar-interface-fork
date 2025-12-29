@@ -8,10 +8,10 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ms from 'ms'
 import { ChainId } from 'sushi'
+import { formatUnits } from 'viem'
 import { createSushiStellarService } from '../../services/sushi-stellar-service'
 import type { Token } from '../../types/token.type'
 import { extractErrorMessage } from '../../utils/error-helpers'
-import { formatTokenAmount } from '../../utils/format'
 import { getStellarTxnLink } from '../../utils/stellarchain-helpers'
 
 export interface UseZapParams {
@@ -161,14 +161,8 @@ export const useZap = () => {
       // We use the remaining balances
 
       // Format back to string for addLiquidity params
-      const token0AmountStr = formatTokenAmount(
-        currentToken0Balance,
-        token0.decimals,
-      )
-      const token1AmountStr = formatTokenAmount(
-        currentToken1Balance,
-        token1.decimals,
-      )
+      const token0AmountStr = formatUnits(currentToken0Balance, token0.decimals)
+      const token1AmountStr = formatUnits(currentToken1Balance, token1.decimals)
 
       const addLiqResult = await service.addLiquidity(
         userAddress,

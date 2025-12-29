@@ -7,15 +7,14 @@ import {
 } from '@sushiswap/notifications'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addMinutes } from 'date-fns'
-import ms from 'ms'
 import { nanoid } from 'nanoid'
 import { toast } from 'react-toastify'
 import { ChainId } from 'sushi'
+import { formatUnits } from 'viem'
 import { useStellarWallet } from '~stellar/providers'
 import { SwapService } from '../../services/swap-service'
 import type { Token } from '../../types/token.type'
 import { extractErrorMessage } from '../../utils/error-helpers'
-import { formatTokenAmount } from '../../utils/format'
 import { getStellarTxnLink } from '../../utils/stellarchain-helpers'
 
 export interface UseExecuteSwapParams {
@@ -40,7 +39,7 @@ export const useExecuteSwap = () => {
       // Show "in progress" toast immediately before transaction starts
       const timestamp = Date.now()
       const infoToastId = `info:swap-${nanoid()}`
-      const amountInFormatted = formatTokenAmount(
+      const amountInFormatted = formatUnits(
         params.amountIn,
         params.tokenIn.decimals,
       )
@@ -88,11 +87,11 @@ export const useExecuteSwap = () => {
 
       const amountOut =
         result.amountOut < 0n ? -result.amountOut : result.amountOut
-      const amountOutFormatted = formatTokenAmount(
+      const amountOutFormatted = formatUnits(
         amountOut,
         params.tokenOut.decimals,
       )
-      const amountInFormatted = formatTokenAmount(
+      const amountInFormatted = formatUnits(
         params.amountIn,
         params.tokenIn.decimals,
       )
@@ -155,10 +154,7 @@ export const useExecuteMultiHopSwap = () => {
       const timestamp = Date.now()
       const infoToastId = `info:multihop-swap-${nanoid()}`
       const tokenInDecimals = params.tokenIn?.decimals ?? 7
-      const amountInFormatted = formatTokenAmount(
-        params.amountIn,
-        tokenInDecimals,
-      )
+      const amountInFormatted = formatUnits(params.amountIn, tokenInDecimals)
 
       createInfoToast({
         summary: `Swapping ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${params.tokenOut?.code || 'tokens'}...`,
@@ -203,11 +199,8 @@ export const useExecuteMultiHopSwap = () => {
         result.amountOut < 0n ? -result.amountOut : result.amountOut
       const tokenInDecimals = params.tokenIn?.decimals ?? 7
       const tokenOutDecimals = params.tokenOut?.decimals ?? 7
-      const amountOutFormatted = formatTokenAmount(amountOut, tokenOutDecimals)
-      const amountInFormatted = formatTokenAmount(
-        params.amountIn,
-        tokenInDecimals,
-      )
+      const amountOutFormatted = formatUnits(amountOut, tokenOutDecimals)
+      const amountInFormatted = formatUnits(params.amountIn, tokenInDecimals)
 
       createSuccessToast({
         summary: `Swapped ${amountInFormatted} ${params.tokenIn?.code || 'tokens'} for ${amountOutFormatted} ${params.tokenOut?.code || 'tokens'}`,

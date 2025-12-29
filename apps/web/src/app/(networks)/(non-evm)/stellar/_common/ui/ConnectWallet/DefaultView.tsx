@@ -13,14 +13,12 @@ import {
 import { JazzIcon } from '@sushiswap/ui/icons/JazzIcon'
 import Link from 'next/link'
 import React, { type Dispatch, type SetStateAction } from 'react'
+import { formatUnits } from 'viem'
 import { useTokenBalances } from '~stellar/_common/lib/hooks/token/use-token-balance'
 import { useXlmBalance } from '~stellar/_common/lib/hooks/token/use-xlm-balance'
 import { getBaseTokens } from '~stellar/_common/lib/soroban/token-helpers'
 import type { Token } from '~stellar/_common/lib/types/token.type'
-import {
-  formatAddress,
-  formatTokenAmount,
-} from '~stellar/_common/lib/utils/format'
+import { formatAddress } from '~stellar/_common/lib/utils/format'
 import { getStellarAddressLink } from '~stellar/_common/lib/utils/stellarchain-helpers'
 import { useStellarWallet } from '~stellar/providers'
 import type { IProfileView } from './ConnectWalletButton'
@@ -145,7 +143,9 @@ export const DefaultView = ({ setView }: DefaultViewProps) => {
                       className="!py-2"
                     >
                       <span className="text-sm font-medium">
-                        {formatTokenAmount(token.balance, token.decimals, 2)}
+                        {Number.parseFloat(
+                          formatUnits(token.balance, token.decimals),
+                        ).toFixed(2)}
                       </span>
                     </List.KeyValue>
                   ))

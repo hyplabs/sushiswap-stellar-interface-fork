@@ -1,32 +1,4 @@
 /**
- * Format token amount with a specific number of decimal places
- */
-export function formatTokenAmount(
-  amount: bigint,
-  decimals: number,
-  displayDecimals?: number,
-): string {
-  const divisor = BigInt(10 ** decimals)
-  const wholePart = amount / divisor
-  const fractionalPart = amount % divisor
-
-  if (fractionalPart === 0n) {
-    return wholePart.toString()
-  }
-
-  const fractionalStr = fractionalPart.toString().padStart(decimals, '0')
-  const trimmedFractional = displayDecimals
-    ? fractionalStr.substring(0, displayDecimals).replace(/0+$/, '')
-    : fractionalStr.replace(/0+$/, '')
-
-  if (trimmedFractional === '') {
-    return wholePart.toString()
-  }
-
-  return `${wholePart}.${trimmedFractional}`
-}
-
-/**
  * Format fee from basis points to percentage
  * e.g., 500 -> 0.05%, 3000 -> 0.3%, 10000 -> 1%
  */
