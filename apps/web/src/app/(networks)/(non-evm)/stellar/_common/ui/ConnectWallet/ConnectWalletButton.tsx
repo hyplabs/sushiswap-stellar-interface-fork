@@ -47,7 +47,7 @@ export const ConnectWalletButton = (props: ButtonProps) => {
 
         {IS_FUTURENET && isConnected ? (
           <Chip className="!text-white rounded-md h-fit absolute right-0 !px-1 !py-0 text-[8px] -top-1">
-            Testnet
+            Futurenet
           </Chip>
         ) : null}
       </PopoverTrigger>

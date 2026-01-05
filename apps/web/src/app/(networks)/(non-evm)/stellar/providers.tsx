@@ -41,7 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const PREFERRED_NETWORK = IS_FUTURENET
-    ? WalletNetwork.TESTNET
+    ? WalletNetwork.FUTURENET
     : WalletNetwork.PUBLIC
 
   useEffect(() => {

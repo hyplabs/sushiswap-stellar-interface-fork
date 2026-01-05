@@ -2,7 +2,7 @@ import { IS_FUTURENET } from '~stellar/_common/lib/constants'
 
 export const getStellarAddressLink = (address: string): string => {
   if (IS_FUTURENET) {
-    return `https://stellar.expert/explorer/testnet/account/${address}`
+    return `https://futurenet.steexp.com/account/${address}`
   } else {
     return `https://stellar.expert/explorer/public/account/${address}`
   }
@@ -10,23 +10,15 @@ export const getStellarAddressLink = (address: string): string => {
 
 export const getStellarContractLink = (contractId: string): string => {
   if (IS_FUTURENET) {
-    return `https://stellar.expert/explorer/testnet/contract/${contractId}`
+    return `https://futurenet.steexp.com/contract/${contractId}`
   } else {
     return `https://stellar.expert/explorer/public/contract/${contractId}`
   }
 }
 
-export const getStellarAssetLink = (code: string): string => {
-  if (IS_FUTURENET) {
-    return `https://stellar.expert/explorer/testnet/asset/${code}`
-  } else {
-    return `https://stellar.expert/explorer/public/asset/${code}`
-  }
-}
-
 export const getStellarTxnLink = (txnHash: string): string => {
   if (IS_FUTURENET) {
-    return `https://stellar.expert/explorer/testnet/tx/${txnHash}`
+    return `https://futurenet.steexp.com/tx/${txnHash}`
   } else {
     return `https://stellar.expert/explorer/public/tx/${txnHash}`
   }
