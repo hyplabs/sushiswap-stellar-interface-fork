@@ -35,9 +35,9 @@ if (typeof window !== 'undefined') {
 
 
 export const networks = {
-  unknown: {
-    networkPassphrase: "Public Global Stellar Network ; September 2015",
-    contractId: "CBTOVCRJ4RMONT37UO6WDTAF5ZMYH3IATO2XV4EQRNJZHTDO6FF42HLT",
+  futurenet: {
+    networkPassphrase: "Test SDF Future Network ; October 2022",
+    contractId: "CAXULSALBSTFSBCMRCU2TRGKDTZO3RTLL2GUSSSPHWK3KR5M4TRQQ3TM",
   }
 } as const
 
@@ -144,7 +144,11 @@ export const SwapRouterError = {
   /**
    * Swap operation failed
    */
-  25: {message:"SwapFailed"}
+  25: {message:"SwapFailed"},
+  /**
+   * Invalid oracle hints
+   */
+  26: {message:"InvalidHints"}
 }
 
 
@@ -582,6 +586,28 @@ export interface Client {
   }) => Promise<AssembledTransaction<Result<i128>>>
 
   /**
+   * Construct and simulate a exact_in_single_hints transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * Swap exact amount of input tokens using caller-provided oracle hints
+   * Single hop version
+   */
+  exact_in_single_hints: ({params, hints}: {params: ExactInputSingleParams, hints: OracleHints}, options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<Result<i128>>>
+
+  /**
    * Construct and simulate a swap_exact_input transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
    * Swap exact amount of input tokens for as many output tokens as possible
    * Multi-hop version (e.g., Token A → B → C in single transaction)
@@ -590,6 +616,28 @@ export interface Client {
    * First hop: Pool pulls from user. Subsequent hops: Pools use prefunded tokens.
    */
   swap_exact_input: ({params}: {params: ExactInputParams}, options?: {
+    /**
+     * The fee to pay for the transaction. Default: BASE_FEE
+     */
+    fee?: number;
+
+    /**
+     * The maximum amount of time to wait for the transaction to complete. Default: DEFAULT_TIMEOUT
+     */
+    timeoutInSeconds?: number;
+
+    /**
+     * Whether to automatically simulate the transaction when constructing the AssembledTransaction. Default: true
+     */
+    simulate?: boolean;
+  }) => Promise<AssembledTransaction<Result<i128>>>
+
+  /**
+   * Construct and simulate a swap_exact_input_with_hints transaction. Returns an `AssembledTransaction` object which will have a `result` field containing the result of the simulation. If this transaction changes contract state, you will need to call `signAndSend()` on the returned object.
+   * Swap exact amount of input tokens using caller-provided oracle hints
+   * Multi-hop version (hints length must equal path.len() - 1)
+   */
+  swap_exact_input_with_hints: ({params, hints}: {params: ExactInputParams, hints: Array<OracleHints>}, options?: {
     /**
      * The fee to pay for the transaction. Default: BASE_FEE
      */
@@ -753,7 +801,7 @@ export class Client extends ContractClient {
   }
   constructor(public readonly options: ContractClientOptions) {
     super(
-      new ContractSpec([ "AAAABAAAAClDdXN0b20gZXJyb3JzIGZvciB0aGUgU3dhcFJvdXRlciBjb250cmFjdAAAAAAAAAAAAAAPU3dhcFJvdXRlckVycm9yAAAAABkAAAAjUm91dGVyIGhhcyBhbHJlYWR5IGJlZW4gaW5pdGlhbGl6ZWQAAAAAEkFscmVhZHlJbml0aWFsaXplZAAAAAAAAQAAAB9Sb3V0ZXIgaGFzIG5vdCBiZWVuIGluaXRpYWxpemVkAAAAAA5Ob3RJbml0aWFsaXplZAAAAAAAAgAAAB9UcmFuc2FjdGlvbiBkZWFkbGluZSBoYXMgcGFzc2VkAAAAAA9EZWFkbGluZUV4cGlyZWQAAAAAAwAAABpJbnN1ZmZpY2llbnQgb3V0cHV0IGFtb3VudAAAAAAAGEluc3VmZmljaWVudE91dHB1dEFtb3VudAAAAAQAAAAWRXhjZXNzaXZlIGlucHV0IGFtb3VudAAAAAAAFEV4Y2Vzc2l2ZUlucHV0QW1vdW50AAAABQAAABFJbnZhbGlkIHN3YXAgcGF0aAAAAAAAAAtJbnZhbGlkUGF0aAAAAAAGAAAAFUludmFsaWQgdG9rZW4gYWRkcmVzcwAAAAAAAAxJbnZhbGlkVG9rZW4AAAAHAAAAEEludmFsaWQgZmVlIHRpZXIAAAAKSW52YWxpZEZlZQAAAAAACAAAACFJbnZhbGlkIGFtb3VudCAoemVybyBvciBuZWdhdGl2ZSkAAAAAAAANSW52YWxpZEFtb3VudAAAAAAAAAkAAAAeSW5zdWZmaWNpZW50IGxpcXVpZGl0eSBpbiBwb29sAAAAAAAVSW5zdWZmaWNpZW50TGlxdWlkaXR5AAAAAAAACgAAABRQcmljZSBsaW1pdCBleGNlZWRlZAAAABJQcmljZUxpbWl0RXhjZWVkZWQAAAAAAAsAAAAlTm90IGF1dGhvcml6ZWQgdG8gcGVyZm9ybSB0aGlzIGFjdGlvbgAAAAAAAA1Ob3RBdXRob3JpemVkAAAAAAAADAAAABVUb2tlbiB0cmFuc2ZlciBmYWlsZWQAAAAAAAAOVHJhbnNmZXJGYWlsZWQAAAAAAA0AAAATUG9vbCBkb2VzIG5vdCBleGlzdAAAAAAMUG9vbE5vdEZvdW5kAAAADgAAABlJbnZhbGlkIHJlY2lwaWVudCBhZGRyZXNzAAAAAAAAEEludmFsaWRSZWNpcGllbnQAAAAPAAAAG1NsaXBwYWdlIHRvbGVyYW5jZSBleGNlZWRlZAAAAAAQU2xpcHBhZ2VFeGNlZWRlZAAAABAAAAAdUGF0aCB0b28gbG9uZyAodG9vIG1hbnkgaG9wcykAAAAAAAALUGF0aFRvb0xvbmcAAAAAEQAAABhJZGVudGljYWwgdG9rZW5zIGluIHN3YXAAAAAPSWRlbnRpY2FsVG9rZW5zAAAAABIAAAAUSW5zdWZmaWNpZW50IGJhbGFuY2UAAAATSW5zdWZmaWNpZW50QmFsYW5jZQAAAAATAAAAGEludmFsaWQgc3FydCBwcmljZSBsaW1pdAAAABVJbnZhbGlkU3FydFByaWNlTGltaXQAAAAAAAAUAAAAFEludmFsaWQgcG9vbCBhZGRyZXNzAAAAC0ludmFsaWRQb29sAAAAABUAAAAdSW5zdWZmaWNpZW50IG91dHB1dCBmcm9tIHN3YXAAAAAAAAASSW5zdWZmaWNpZW50T3V0cHV0AAAAAAAWAAAAIUV4Y2Vzc2l2ZSBpbnB1dCByZXF1aXJlZCBmb3Igc3dhcAAAAAAAABZFeGNlc3NpdmVJbnB1dFJlcXVpcmVkAAAAAAAXAAAAF09wZXJhdGlvbiBub3Qgc3VwcG9ydGVkAAAAAAxOb3RTdXBwb3J0ZWQAAAAYAAAAFVN3YXAgb3BlcmF0aW9uIGZhaWxlZAAAAAAAAApTd2FwRmFpbGVkAAAAAAAZ",
+      new ContractSpec([ "AAAABAAAAClDdXN0b20gZXJyb3JzIGZvciB0aGUgU3dhcFJvdXRlciBjb250cmFjdAAAAAAAAAAAAAAPU3dhcFJvdXRlckVycm9yAAAAABoAAAAjUm91dGVyIGhhcyBhbHJlYWR5IGJlZW4gaW5pdGlhbGl6ZWQAAAAAEkFscmVhZHlJbml0aWFsaXplZAAAAAAAAQAAAB9Sb3V0ZXIgaGFzIG5vdCBiZWVuIGluaXRpYWxpemVkAAAAAA5Ob3RJbml0aWFsaXplZAAAAAAAAgAAAB9UcmFuc2FjdGlvbiBkZWFkbGluZSBoYXMgcGFzc2VkAAAAAA9EZWFkbGluZUV4cGlyZWQAAAAAAwAAABpJbnN1ZmZpY2llbnQgb3V0cHV0IGFtb3VudAAAAAAAGEluc3VmZmljaWVudE91dHB1dEFtb3VudAAAAAQAAAAWRXhjZXNzaXZlIGlucHV0IGFtb3VudAAAAAAAFEV4Y2Vzc2l2ZUlucHV0QW1vdW50AAAABQAAABFJbnZhbGlkIHN3YXAgcGF0aAAAAAAAAAtJbnZhbGlkUGF0aAAAAAAGAAAAFUludmFsaWQgdG9rZW4gYWRkcmVzcwAAAAAAAAxJbnZhbGlkVG9rZW4AAAAHAAAAEEludmFsaWQgZmVlIHRpZXIAAAAKSW52YWxpZEZlZQAAAAAACAAAACFJbnZhbGlkIGFtb3VudCAoemVybyBvciBuZWdhdGl2ZSkAAAAAAAANSW52YWxpZEFtb3VudAAAAAAAAAkAAAAeSW5zdWZmaWNpZW50IGxpcXVpZGl0eSBpbiBwb29sAAAAAAAVSW5zdWZmaWNpZW50TGlxdWlkaXR5AAAAAAAACgAAABRQcmljZSBsaW1pdCBleGNlZWRlZAAAABJQcmljZUxpbWl0RXhjZWVkZWQAAAAAAAsAAAAlTm90IGF1dGhvcml6ZWQgdG8gcGVyZm9ybSB0aGlzIGFjdGlvbgAAAAAAAA1Ob3RBdXRob3JpemVkAAAAAAAADAAAABVUb2tlbiB0cmFuc2ZlciBmYWlsZWQAAAAAAAAOVHJhbnNmZXJGYWlsZWQAAAAAAA0AAAATUG9vbCBkb2VzIG5vdCBleGlzdAAAAAAMUG9vbE5vdEZvdW5kAAAADgAAABlJbnZhbGlkIHJlY2lwaWVudCBhZGRyZXNzAAAAAAAAEEludmFsaWRSZWNpcGllbnQAAAAPAAAAG1NsaXBwYWdlIHRvbGVyYW5jZSBleGNlZWRlZAAAAAAQU2xpcHBhZ2VFeGNlZWRlZAAAABAAAAAdUGF0aCB0b28gbG9uZyAodG9vIG1hbnkgaG9wcykAAAAAAAALUGF0aFRvb0xvbmcAAAAAEQAAABhJZGVudGljYWwgdG9rZW5zIGluIHN3YXAAAAAPSWRlbnRpY2FsVG9rZW5zAAAAABIAAAAUSW5zdWZmaWNpZW50IGJhbGFuY2UAAAATSW5zdWZmaWNpZW50QmFsYW5jZQAAAAATAAAAGEludmFsaWQgc3FydCBwcmljZSBsaW1pdAAAABVJbnZhbGlkU3FydFByaWNlTGltaXQAAAAAAAAUAAAAFEludmFsaWQgcG9vbCBhZGRyZXNzAAAAC0ludmFsaWRQb29sAAAAABUAAAAdSW5zdWZmaWNpZW50IG91dHB1dCBmcm9tIHN3YXAAAAAAAAASSW5zdWZmaWNpZW50T3V0cHV0AAAAAAAWAAAAIUV4Y2Vzc2l2ZSBpbnB1dCByZXF1aXJlZCBmb3Igc3dhcAAAAAAAABZFeGNlc3NpdmVJbnB1dFJlcXVpcmVkAAAAAAAXAAAAF09wZXJhdGlvbiBub3Qgc3VwcG9ydGVkAAAAAAxOb3RTdXBwb3J0ZWQAAAAYAAAAFVN3YXAgb3BlcmF0aW9uIGZhaWxlZAAAAAAAAApTd2FwRmFpbGVkAAAAAAAZAAAAFEludmFsaWQgb3JhY2xlIGhpbnRzAAAADEludmFsaWRIaW50cwAAABo=",
         "AAAABQAAABtSb3V0ZXIgaW5pdGlhbGl6YXRpb24gZXZlbnQAAAAAAAAAABBJbml0aWFsaXplZEV2ZW50AAAAAQAAABFpbml0aWFsaXplZF9ldmVudAAAAAAAAAEAAAAAAAAAB2ZhY3RvcnkAAAAAEwAAAAAAAAAC",
         "AAAABQAAABVTaW5nbGUtaG9wIHN3YXAgZXZlbnQAAAAAAAAAAAAACVN3YXBFdmVudAAAAAAAAAEAAAAKc3dhcF9ldmVudAAAAAAAAwAAAAAAAAAJcmVjaXBpZW50AAAAAAAAEwAAAAAAAAAAAAAACWFtb3VudF9pbgAAAAAAAAsAAAAAAAAAAAAAAAphbW91bnRfb3V0AAAAAAALAAAAAAAAAAI=",
         "AAAAAQAAAAAAAAAAAAAAC1F1b3RlUmVzdWx0AAAAAAIAAAAAAAAABmFtb3VudAAAAAAACwAAAAAAAAAUc3FydF9wcmljZV94OTZfYWZ0ZXIAAAAM",
@@ -768,7 +816,9 @@ export class Client extends ContractClient {
         "AAAAAQAAACNQYXltZW50IGRldGFpbHMgZm9yIG11bHRpLWhvcCBzd2FwcwAAAAAAAAAAB1BheW1lbnQAAAAAAwAAAA1BbW91bnQgdG8gcGF5AAAAAAAABmFtb3VudAAAAAAACwAAAA1QYXllciBhZGRyZXNzAAAAAAAABXBheWVyAAAAAAAAEwAAAA1Ub2tlbiBhZGRyZXNzAAAAAAAABXRva2VuAAAAAAAAEw==",
         "AAAAAAAAAGFJbml0aWFsaXplIHRoZSByb3V0ZXIgd2l0aCBmYWN0b3J5IGFuZCBYTE0gYWRkcmVzc2VzCkZvbGxvd2luZyBVbmlzd2FwIFYzJ3MgcGVybWlzc2lvbmxlc3MgZGVzaWduAAAAAAAAC2luaXRfcm91dGVyAAAAAAIAAAAAAAAAB2ZhY3RvcnkAAAAAEwAAAAAAAAADeGxtAAAAABMAAAABAAAD6QAAA+0AAAAAAAAH0AAAAA9Td2FwUm91dGVyRXJyb3IA",
         "AAAAAAAAAPFTd2FwIGV4YWN0IGFtb3VudCBvZiBpbnB1dCB0b2tlbnMgZm9yIGFzIG1hbnkgb3V0cHV0IHRva2VucyBhcyBwb3NzaWJsZQpTaW5nbGUgaG9wIHZlcnNpb24KClVzZXMgU29yb2JhbidzIGF1dGhvcml6YXRpb24gZnJhbWV3b3JrIC0gbm8gcHJlLWFwcHJvdmFsIG5lZWRlZCEKVGhlIHVzZXIncyBzaWduYXR1cmUgYXV0aG9yaXplcyBib3RoIHRoZSByb3V0ZXIgY2FsbCBhbmQgdGhlIHBvb2wncyB0b2tlbiB0cmFuc2ZlcnMuAAAAAAAAF3N3YXBfZXhhY3RfaW5wdXRfc2luZ2xlAAAAAAEAAAAAAAAABnBhcmFtcwAAAAAH0AAAABZFeGFjdElucHV0U2luZ2xlUGFyYW1zAAAAAAABAAAD6QAAAAsAAAfQAAAAD1N3YXBSb3V0ZXJFcnJvcgA=",
+        "AAAAAAAAAFdTd2FwIGV4YWN0IGFtb3VudCBvZiBpbnB1dCB0b2tlbnMgdXNpbmcgY2FsbGVyLXByb3ZpZGVkIG9yYWNsZSBoaW50cwpTaW5nbGUgaG9wIHZlcnNpb24AAAAAFWV4YWN0X2luX3NpbmdsZV9oaW50cwAAAAAAAAIAAAAAAAAABnBhcmFtcwAAAAAH0AAAABZFeGFjdElucHV0U2luZ2xlUGFyYW1zAAAAAAAAAAAABWhpbnRzAAAAAAAH0AAAAAtPcmFjbGVIaW50cwAAAAABAAAD6QAAAAsAAAfQAAAAD1N3YXBSb3V0ZXJFcnJvcgA=",
         "AAAAAAAAAR1Td2FwIGV4YWN0IGFtb3VudCBvZiBpbnB1dCB0b2tlbnMgZm9yIGFzIG1hbnkgb3V0cHV0IHRva2VucyBhcyBwb3NzaWJsZQpNdWx0aS1ob3AgdmVyc2lvbiAoZS5nLiwgVG9rZW4gQSDihpIgQiDihpIgQyBpbiBzaW5nbGUgdHJhbnNhY3Rpb24pCgpVc2VzIFNvcm9iYW4ncyBhdXRob3JpemF0aW9uIGZyYW1ld29yayBmb3IgYXRvbWljIG11bHRpLWhvcCBzd2Fwcy4KRmlyc3QgaG9wOiBQb29sIHB1bGxzIGZyb20gdXNlci4gU3Vic2VxdWVudCBob3BzOiBQb29scyB1c2UgcHJlZnVuZGVkIHRva2Vucy4AAAAAAAAQc3dhcF9leGFjdF9pbnB1dAAAAAEAAAAAAAAABnBhcmFtcwAAAAAH0AAAABBFeGFjdElucHV0UGFyYW1zAAAAAQAAA+kAAAALAAAH0AAAAA9Td2FwUm91dGVyRXJyb3IA",
+        "AAAAAAAAAH9Td2FwIGV4YWN0IGFtb3VudCBvZiBpbnB1dCB0b2tlbnMgdXNpbmcgY2FsbGVyLXByb3ZpZGVkIG9yYWNsZSBoaW50cwpNdWx0aS1ob3AgdmVyc2lvbiAoaGludHMgbGVuZ3RoIG11c3QgZXF1YWwgcGF0aC5sZW4oKSAtIDEpAAAAABtzd2FwX2V4YWN0X2lucHV0X3dpdGhfaGludHMAAAAAAgAAAAAAAAAGcGFyYW1zAAAAAAfQAAAAEEV4YWN0SW5wdXRQYXJhbXMAAAAAAAAABWhpbnRzAAAAAAAD6gAAB9AAAAALT3JhY2xlSGludHMAAAAAAQAAA+kAAAALAAAH0AAAAA9Td2FwUm91dGVyRXJyb3IA",
         "AAAAAAAAAI5Td2FwIGFzIGZldyBpbnB1dCB0b2tlbnMgYXMgcG9zc2libGUgZm9yIGV4YWN0IGFtb3VudCBvZiBvdXRwdXQgdG9rZW5zCk5vdCBpbXBsZW1lbnRlZCAocmVxdWlyZXMgcmV2ZXJzZS1wYXRoIGNvb3JkaW5hdGlvbiBhbmQgdG9rZW4gY3VzdG9keSkuAAAAAAAYc3dhcF9leGFjdF9vdXRwdXRfc2luZ2xlAAAAAQAAAAAAAAAGcGFyYW1zAAAAAAfQAAAAF0V4YWN0T3V0cHV0U2luZ2xlUGFyYW1zAAAAAAEAAAPpAAAACwAAB9AAAAAPU3dhcFJvdXRlckVycm9yAA==",
         "AAAAAAAAAAAAAAARc3dhcF9leGFjdF9vdXRwdXQAAAAAAAABAAAAAAAAAAZwYXJhbXMAAAAAB9AAAAARRXhhY3RPdXRwdXRQYXJhbXMAAAAAAAABAAAD6QAAAAsAAAfQAAAAD1N3YXBSb3V0ZXJFcnJvcgA=",
         "AAAAAAAAAFVRdW90ZSBleGFjdCBpbnB1dCBtdWx0aS1ob3Agc3dhcCB3aXRob3V0IGV4ZWN1dGlvbgpSZXR1cm5zIHRoZSBleHBlY3RlZCBvdXRwdXQgYW1vdW50AAAAAAAAEXF1b3RlX2V4YWN0X2lucHV0AAAAAAAAAQAAAAAAAAAGcGFyYW1zAAAAAAfQAAAAEEV4YWN0SW5wdXRQYXJhbXMAAAABAAAD6QAAB9AAAAALUXVvdGVSZXN1bHQAAAAH0AAAAA9Td2FwUm91dGVyRXJyb3IA",
@@ -787,7 +837,9 @@ export class Client extends ContractClient {
   public readonly fromJSON = {
     init_router: this.txFromJSON<Result<void>>,
         swap_exact_input_single: this.txFromJSON<Result<i128>>,
+        exact_in_single_hints: this.txFromJSON<Result<i128>>,
         swap_exact_input: this.txFromJSON<Result<i128>>,
+        swap_exact_input_with_hints: this.txFromJSON<Result<i128>>,
         swap_exact_output_single: this.txFromJSON<Result<i128>>,
         swap_exact_output: this.txFromJSON<Result<i128>>,
         quote_exact_input: this.txFromJSON<Result<QuoteResult>>,
