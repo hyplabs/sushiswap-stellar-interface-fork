@@ -18,12 +18,15 @@ const stellarExpertAssetSchema = z.object({
 const stellarExpertResponseSchema = z.array(stellarExpertAssetSchema)
 
 const stellarExpertTopTokensApiUrl = IS_FUTURENET
-  ? 'https://api.stellar.expert/explorer/testnet/asset-list/top50'
+  ? undefined
   : 'https://api.stellar.expert/explorer/public/asset-list/top50'
 
 const getStellarExpertAssets = async (): Promise<
   z.infer<typeof stellarExpertAssetSchema>[]
 > => {
+  if (!stellarExpertTopTokensApiUrl) {
+    return []
+  }
   const response = await fetch(stellarExpertTopTokensApiUrl, {
     headers: { Accept: 'application/json' },
   })
