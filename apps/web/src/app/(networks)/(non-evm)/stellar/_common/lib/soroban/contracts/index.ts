@@ -1,7 +1,7 @@
 import { IS_FUTURENET } from '../../constants'
 import type { ContractAddresses } from '../../types/contract-addresses.type'
+import { CONTRACT_ADDRESSES as TESTNET_CONTRACT_ADDRESSES } from './futurenet/contract-addresses'
 import { CONTRACT_ADDRESSES as MAINNET_CONTRACT_ADDRESSES } from './mainnet/contract-addresses'
-import { CONTRACT_ADDRESSES as TESTNET_CONTRACT_ADDRESSES } from './testnet/contract-addresses'
 
 export const contractAddresses: ContractAddresses = IS_FUTURENET
   ? TESTNET_CONTRACT_ADDRESSES

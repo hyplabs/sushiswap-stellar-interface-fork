@@ -1,4 +1,4 @@
-import { CONTRACT_ADDRESSES } from '~stellar/_common/lib/soroban/contracts/testnet/contract-addresses'
+import { CONTRACT_ADDRESSES } from '~stellar/_common/lib/soroban/contracts/futurenet/contract-addresses'
 import type { Token } from '~stellar/_common/lib/types/token.type'
 
 // These are TESTNET tokens (curated by StellarExpert)
