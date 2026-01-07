@@ -34,6 +34,7 @@ import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
 import type { Token } from '~stellar/_common/lib/types/token.type'
 import { alignTick, isTickAligned } from '~stellar/_common/lib/utils/ticks'
 import { useStellarWallet } from '~stellar/providers'
+import { useBestRoute } from '~stellar/swap/lib/hooks/use-best-route'
 import { ConnectWalletButton } from '../ConnectWallet/ConnectWalletButton'
 import { TickRangeSelector } from '../TickRangeSelector/TickRangeSelector.tsx'
 import { CreateTrustlineButton } from '../Trustline/CreateTrustlineButton'
@@ -193,7 +194,24 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
 
   // Liquidity management hooks
   const addLiquidityMutation = useAddLiquidity()
+  const halfZapAmountInBigInt =
+    BigInt(
+      Math.round(
+        Number.parseFloat(zapAmountIn || '0') *
+          10 ** (zapTokenIn?.decimals || 0),
+      ),
+    ) / 2n // Use half amount for estimating token0 route
   const zapMutation = useZap()
+  const { route: routeToken0, isPending: isPendingRouteToken0 } = useBestRoute({
+    tokenIn: zapTokenIn,
+    tokenOut: pool.token0,
+    amountIn: halfZapAmountInBigInt,
+  })
+  const { route: routeToken1, isPending: isPendingRouteToken1 } = useBestRoute({
+    tokenIn: zapTokenIn,
+    tokenOut: pool.token1,
+    amountIn: halfZapAmountInBigInt,
+  })
   const removeLiquidityMutation = useRemoveLiquidity()
   const selectedPosition = useMemo(
     () =>
@@ -478,10 +496,21 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                             Number.parseFloat(zapAmountIn) <= 0 ||
                             !isTickRangeValid ||
                             tokensNeedingTrustline.length > 0 ||
-                            zapMutation.isPending
+                            zapMutation.isPending ||
+                            (isPendingRouteToken0 &&
+                              zapTokenIn.contract.toUpperCase() !==
+                                pool.token0.contract.toUpperCase()) ||
+                            (isPendingRouteToken1 &&
+                              zapTokenIn.contract.toUpperCase() !==
+                                pool.token1.contract.toUpperCase())
                           }
                           onClick={async () => {
-                            if (!connectedAddress || !zapAmountIn) return
+                            if (
+                              !connectedAddress ||
+                              !zapTokenIn ||
+                              !zapAmountIn
+                            )
+                              return
 
                             const alignedLower = alignTick(
                               tickLower,
@@ -518,8 +547,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                             setTickLower(alignedLower)
                             setTickUpper(alignedUpper)
 
-                            if (!zapTokenIn) return
-
                             zapMutation.mutate(
                               {
                                 userAddress: connectedAddress,
@@ -533,6 +560,8 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                                 tickUpper: alignedUpper,
                                 signTransaction,
                                 signAuthEntry,
+                                routeToken0: routeToken0 ?? null,
+                                routeToken1: routeToken1 ?? null,
                               },
                               {
                                 onSuccess: () => {
