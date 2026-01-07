@@ -101,7 +101,9 @@ export const useZap = () => {
         service,
       })
 
-      let assembledTransaction
+      let assembledTransaction: Awaited<
+        ReturnType<typeof zapRouterClient.zap_in>
+      >
       try {
         assembledTransaction = await zapRouterClient.zap_in(
           {

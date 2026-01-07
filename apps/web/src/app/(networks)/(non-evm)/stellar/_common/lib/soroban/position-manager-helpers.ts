@@ -80,7 +80,9 @@ export async function mintPosition({
       sender: sourceAccount,
     }
 
-    let assembledTransaction
+    let assembledTransaction: Awaited<
+      ReturnType<typeof positionManagerClient.mint>
+    >
     try {
       assembledTransaction = await positionManagerClient.mint(
         {
@@ -118,12 +120,14 @@ export async function mintPosition({
     if (result.success) {
       // Position was created successfully
       // The position will be queryable via get_user_positions_with_fees
+      const [tokenId, liquidity, amount0, amount1] =
+        assembledTransaction.result.unwrap()
       return {
         hash: txHash,
-        tokenId: 0, // Will be available via get_user_positions_with_fees
-        liquidity: BigInt(0),
-        amount0: BigInt(0),
-        amount1: BigInt(0),
+        tokenId,
+        liquidity,
+        amount0,
+        amount1,
       }
     } else {
       console.error('Transaction failed:', result.error)
@@ -179,7 +183,9 @@ export async function increaseLiquidity({
       publicKey: sourceAccount,
     })
 
-    let assembledTransaction
+    let assembledTransaction: Awaited<
+      ReturnType<typeof positionManagerClient.increase_liquidity>
+    >
     try {
       assembledTransaction = await positionManagerClient.increase_liquidity(
         {
