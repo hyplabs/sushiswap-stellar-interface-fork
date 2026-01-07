@@ -98,33 +98,3 @@ export async function findBestPath(
 
   return null
 }
-
-/**
- * Calculate the minimum amount out for a given slippage tolerance
- * @param amountOut - Expected amount out
- * @param slippageTolerance - Slippage tolerance as a percentage (e.g., 0.5 for 0.5%)
- * @returns Minimum amount out
- */
-export function calculateAmountOutMinimum(
-  amountOut: bigint,
-  slippageTolerance: number,
-): bigint {
-  const slippageBps = Math.floor(slippageTolerance * 100) // Convert to basis points
-  const slippageMultiplier = BigInt(10000 - slippageBps)
-  return (amountOut * slippageMultiplier) / BigInt(10000)
-}
-
-/**
- * Calculate the maximum amount in for a given slippage tolerance
- * @param amountIn - Expected amount in
- * @param slippageTolerance - Slippage tolerance as a percentage
- * @returns Maximum amount in
- */
-export function calculateAmountInMaximum(
-  amountIn: bigint,
-  slippageTolerance: number,
-): bigint {
-  const slippageBps = Math.floor(slippageTolerance * 100)
-  const slippageMultiplier = BigInt(10000 + slippageBps)
-  return (amountIn * slippageMultiplier) / BigInt(10000)
-}
