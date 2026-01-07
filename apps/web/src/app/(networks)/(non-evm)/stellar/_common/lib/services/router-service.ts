@@ -1,3 +1,5 @@
+import { staticTokens } from '../assets/token-assets'
+import { contractAddresses } from '../soroban'
 import type { PoolBasicInfo } from '../soroban/pool-helpers'
 import type { Token } from '../types/token.type'
 import type { SwapQuote } from './quote-service'
@@ -131,16 +133,12 @@ export class RouterService {
 
     // Common intermediate tokens (usually native token or stablecoins)
     const INTERMEDIATE_TOKENS: Token[] = [
-      {
-        code: 'XLM',
-        issuer: 'native',
-        contract: 'CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC',
-        name: 'Stellar Lumens',
-        org: 'Stellar Development Foundation',
-        decimals: 7,
-      },
-      // Could add USDC, etc.
-    ]
+      staticTokens.find(
+        (t) =>
+          t.contract.toLowerCase() ===
+          contractAddresses.TOKENS.XLM.toLowerCase(),
+      ),
+    ].filter((t): t is Token => t !== undefined)
 
     for (const intermediate of INTERMEDIATE_TOKENS) {
       // Skip if intermediate is same as input/output
@@ -231,41 +229,26 @@ export class RouterService {
 
     return best
   }
+}
 
-  /**
-   * Calculate price impact for a swap
-   */
-  private calculatePriceImpact(
-    amountIn: bigint,
-    amountOut: bigint,
-    poolReserves: { reserveIn: bigint; reserveOut: bigint },
-  ): number {
-    // Simplified price impact calculation
-    // In production, you'd use proper AMM math
-    const currentPrice =
-      Number(poolReserves.reserveOut) / Number(poolReserves.reserveIn)
-    const executionPrice = Number(amountOut) / Number(amountIn)
-    const priceImpact = Math.abs(currentPrice - executionPrice) / currentPrice
-
-    return priceImpact
+/**
+ * Format route for user display
+ */
+export function formatRouteForUser(route: SwapRoute): string {
+  if (route.path.length === 2) {
+    return `${route.path[0].code} → ${route.path[1].code}`
+  } else {
+    return route.path.map((t) => t.code).join(' → ')
   }
+}
 
-  /**
-   * Format route for user display
-   */
-  formatRouteForUser(route: SwapRoute): string {
-    if (route.path.length === 2) {
-      return `${route.path[0].code} → ${route.path[1].code}`
-    } else {
-      return route.path.map((t) => t.code).join(' → ')
-    }
-  }
-
-  /**
-   * Calculate minimum amount out with slippage protection
-   */
-  calculateAmountOutMinimum(amountOut: bigint, slippage = 0.005): bigint {
-    const slippageMultiplier = BigInt(Math.floor((1 - slippage) * 1000000))
-    return (amountOut * slippageMultiplier) / BigInt(1000000)
-  }
+/**
+ * Calculate minimum amount out with slippage protection
+ */
+export function calculateAmountOutMinimum(
+  amountOut: bigint,
+  slippage = 0.005,
+): bigint {
+  const slippageMultiplier = BigInt(Math.floor((1 - slippage) * 1000000))
+  return (amountOut * slippageMultiplier) / BigInt(1000000)
 }

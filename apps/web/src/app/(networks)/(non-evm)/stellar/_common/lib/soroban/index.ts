@@ -28,8 +28,6 @@ export * from './dex-factory-helpers'
 export {
   findBestPath,
   findPoolsBetweenTokens,
-  calculateAmountOutMinimum as calculateRouterAmountOutMinimum,
-  calculateAmountInMaximum as calculateRouterAmountInMaximum,
 } from './dex-router-helpers'
 export type { Route } from './dex-router-helpers'
 
