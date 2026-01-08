@@ -1,6 +1,5 @@
 'use client'
 
-import { createErrorToast, createSuccessToast } from '@sushiswap/notifications'
 import {
   Button,
   Card,
@@ -16,7 +15,6 @@ import {
 } from '@sushiswap/ui'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { ChainId } from 'sushi'
 import { formatUnits } from 'viem'
 import { ToggleZapCard } from '~evm/[chainId]/pool/_ui/toggle-zap-card'
 import { useRemoveLiquidity } from '~stellar/_common/lib/hooks/liquidity/use-remove-liquidity'
@@ -24,23 +22,17 @@ import { useCalculateDependentAmount } from '~stellar/_common/lib/hooks/pool/use
 import { useMaxPairedAmount } from '~stellar/_common/lib/hooks/pool/use-max-paired-amount'
 import { usePoolBalances } from '~stellar/_common/lib/hooks/pool/use-pool-balances'
 import { useMyPosition } from '~stellar/_common/lib/hooks/position/use-my-position'
-import { useCollectFees } from '~stellar/_common/lib/hooks/position/use-positions'
 import { useAddLiquidity } from '~stellar/_common/lib/hooks/swap'
 import { useTickRangeSelector } from '~stellar/_common/lib/hooks/tick/use-tick-range-selector'
 import { useNeedsTrustline } from '~stellar/_common/lib/hooks/trustline/use-trustline'
 import { useZap } from '~stellar/_common/lib/hooks/zap/use-zap'
 import {
   calculatePriceFromSqrtPrice,
-  calculatePriceFromTick,
+  formatPriceBound,
 } from '~stellar/_common/lib/soroban/pool-helpers'
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
 import type { Token } from '~stellar/_common/lib/types/token.type'
-import { getStellarTxnLink } from '~stellar/_common/lib/utils/stellarchain-helpers'
-import {
-  MAX_TICK_RANGE,
-  alignTick,
-  isTickAligned,
-} from '~stellar/_common/lib/utils/ticks'
+import { alignTick, isTickAligned } from '~stellar/_common/lib/utils/ticks'
 import { useStellarWallet } from '~stellar/providers'
 import { ConnectWalletButton } from '../ConnectWallet/ConnectWalletButton'
 import { TickRangeSelector } from '../TickRangeSelector/TickRangeSelector.tsx'
@@ -264,31 +256,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
     isTickRangeValid &&
     !isDependentAmountError &&
     tokensNeedingTrustline.length === 0
-
-  const formatPriceBound = (tick: number, bound: 'lower' | 'upper') => {
-    if (bound === 'lower' && tick <= MAX_TICK_RANGE.lower) {
-      return '0'
-    }
-    if (bound === 'upper' && tick >= MAX_TICK_RANGE.upper) {
-      return '∞'
-    }
-
-    const price = calculatePriceFromTick(tick)
-
-    if (!Number.isFinite(price) || price <= 0) {
-      return bound === 'lower' ? '0' : '∞'
-    }
-
-    if (price >= 1_000_000) {
-      return price.toExponential(2)
-    }
-
-    if (price <= 0.0001) {
-      return '<0.0001'
-    }
-
-    return price.toLocaleString(undefined, { maximumSignificantDigits: 6 })
-  }
 
   // Handle add liquidity (normal mode only - zap mode has its own handler)
   const handleAddLiquidity = async () => {
