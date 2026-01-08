@@ -203,11 +203,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
   const addLiquidityMutation = useAddLiquidity()
   const zapMutation = useZap()
   const removeLiquidityMutation = useRemoveLiquidity()
-  const collectFeesMutation = useCollectFees()
-  const [
-    removingLiquidityAndCollectingFeesStep,
-    setRemovingLiquidityAndCollectingFeesStep,
-  ] = useState<'idle' | 'removing' | 'collecting'>('idle')
   const selectedPosition = useMemo(
     () =>
       selectedPositionId == null
@@ -366,10 +361,6 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
 
     try {
       const liquidityBigInt = BigInt(selectedPosition.liquidity || '0')
-      if (liquidityBigInt === 0n) {
-        console.error('Selected position has no liquidity')
-        return
-      }
 
       const percentBigInt = BigInt(removePercent)
       const liquidityToRemove =
@@ -377,68 +368,19 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
           ? liquidityBigInt
           : (liquidityBigInt * percentBigInt) / 100n
 
-      if (liquidityToRemove <= 0n) {
-        console.error('Removal amount must be greater than zero')
-        return
-      }
-
-      setRemovingLiquidityAndCollectingFeesStep('removing')
       await removeLiquidityMutation.mutateAsync({
         tokenId: selectedPosition.tokenId,
         liquidity: liquidityToRemove,
         amount0Min: 0n,
         amount1Min: 0n,
-        token0Code: pool.token0.code,
-        token1Code: pool.token1.code,
+        token0: pool.token0,
+        token1: pool.token1,
       })
-
-      setRemovingLiquidityAndCollectingFeesStep('collecting')
-      try {
-        const collectResult = await collectFeesMutation.mutateAsync({
-          tokenId: selectedPosition.tokenId,
-          recipient: connectedAddress,
-          amount0Max: 18446744073709551615n, // uint128 max
-          amount1Max: 18446744073709551615n, // uint128 max
-          signTransaction,
-          signAuthEntry,
-        })
-        const token0Amount = formatUnits(
-          collectResult.amount0,
-          pool.token0.decimals,
-        )
-        const token1Amount = formatUnits(
-          collectResult.amount1,
-          pool.token1.decimals,
-        )
-
-        let summary = 'Fees collected successfully'
-        if (collectResult.amount0 > 0n && collectResult.amount1 > 0n) {
-          summary = `Collected ${token0Amount} ${pool.token0.code} and ${token1Amount} ${pool.token1.code}`
-        } else if (collectResult.amount0 > 0n) {
-          summary = `Collected ${token0Amount} ${pool.token0.code}`
-        } else if (collectResult.amount1 > 0n) {
-          summary = `Collected ${token1Amount} ${pool.token1.code}`
-        }
-        createSuccessToast({
-          summary,
-          type: 'claimRewards',
-          account: connectedAddress,
-          chainId: ChainId.STELLAR,
-          txHash: collectResult.txHash,
-          href: getStellarTxnLink(collectResult.txHash),
-          groupTimestamp: Date.now(),
-          timestamp: Date.now(),
-        })
-      } catch (error: any) {
-        createErrorToast(error.message, false)
-      }
 
       // Reset form
       setRemovePercent(100)
     } catch (error) {
       console.error('Failed to remove liquidity:', error)
-    } finally {
-      setRemovingLiquidityAndCollectingFeesStep('idle')
     }
   }
 
@@ -918,16 +860,13 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                         size="lg"
                         disabled={
                           !hasRemoveAmount ||
-                          removingLiquidityAndCollectingFeesStep !== 'idle' ||
+                          removeLiquidityMutation.isPending ||
                           !selectedPosition
                         }
                         onClick={handleRemoveLiquidity}
                       >
-                        {removingLiquidityAndCollectingFeesStep !== 'idle'
-                          ? removingLiquidityAndCollectingFeesStep ===
-                            'removing'
-                            ? 'Removing Liquidity...'
-                            : 'Collecting Fees...'
+                        {removeLiquidityMutation.isPending
+                          ? 'Removing and Collecting Liquidity...'
                           : hasRemoveAmount
                             ? 'Remove Liquidity'
                             : 'Select Percentage'}
