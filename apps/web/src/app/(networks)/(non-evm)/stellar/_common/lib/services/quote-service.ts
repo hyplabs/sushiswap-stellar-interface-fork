@@ -39,7 +39,6 @@ export interface SwapQuote {
   amountOut: bigint
   path: string[]
   fees: number[]
-  priceImpact: number
   routeType: 'direct' | 'multihop'
 }
 
@@ -101,7 +100,6 @@ export class QuoteService {
         amountOut: result.unwrap().amount,
         path: [params.tokenIn, params.tokenOut],
         fees: [params.fee],
-        priceImpact: 0, // Calculate based on pool reserves
         routeType: 'direct',
       }
     } catch (error) {
@@ -153,7 +151,6 @@ export class QuoteService {
         amountOut: result.unwrap().amount,
         path: params.path,
         fees: params.fees,
-        priceImpact: 0, // Calculate based on pool reserves
         routeType: 'multihop',
       }
     } catch (error) {

@@ -14,7 +14,6 @@ export interface SwapRoute {
   fees: number[]
   amountIn: bigint
   amountOut: bigint
-  priceImpact: number
   routeType: 'direct' | 'multihop'
 }
 
@@ -70,7 +69,6 @@ export class RouterService {
       fees: bestQuote.fees,
       amountIn: amountIn,
       amountOut: bestQuote.amountOut,
-      priceImpact: bestQuote.priceImpact,
       routeType: bestQuote.routeType,
     }
   }
@@ -108,7 +106,6 @@ export class RouterService {
             amountOut: quote.amountOut,
             path: [pool.tokenA.contract, pool.tokenB.contract],
             fees: [pool.fee],
-            priceImpact: quote.priceImpact,
             routeType: 'direct',
             pools: [pool], // Add pools to track them
           } as SwapQuote & { pools: PoolBasicInfo[] })
@@ -172,7 +169,6 @@ export class RouterService {
                 tokenOut.contract,
               ],
               fees: [pool1.fee, pool2.fee],
-              priceImpact: quote.priceImpact,
               routeType: 'multihop',
               _tokens: [tokenIn, intermediate, tokenOut], // Track Token objects privately
               pools: [pool1, pool2],

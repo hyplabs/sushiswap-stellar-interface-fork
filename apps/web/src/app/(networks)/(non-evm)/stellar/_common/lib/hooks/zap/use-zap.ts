@@ -1,5 +1,6 @@
 'use client'
 
+import * as StellarSdk from '@stellar/stellar-sdk'
 import {
   createErrorToast,
   createInfoToast,
@@ -101,46 +102,47 @@ export const useZap = () => {
         service,
       })
 
-      let assembledTransaction: Awaited<
-        ReturnType<typeof zapRouterClient.zap_in>
-      >
-      try {
-        assembledTransaction = await zapRouterClient.zap_in(
-          {
-            params: {
-              amount0_min: 0n,
-              amount1_min: 0n,
-              amount_in: amountInBigInt,
-              deadline: BigInt(
-                Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
-              ),
-              fees_to_token0: token0ZapSwapParams.fees,
-              fees_to_token1: token1ZapSwapParams.fees,
-              min_liquidity: 0n,
-              path_to_token0: token0ZapSwapParams.path,
-              path_to_token1: token1ZapSwapParams.path,
-              pool: poolAddress,
-              recipient: userAddress,
-              sender: userAddress,
-              swap_amount_hint: undefined,
-              swap_to_token0_min_out: token0ZapSwapParams.swapMinOut,
-              swap_to_token1_min_out: token1ZapSwapParams.swapMinOut,
-              tick_lower: tickLower,
-              tick_upper: tickUpper,
-              token_in: tokenIn.contract,
-            },
+      const assembledTransaction = await zapRouterClient.zap_in(
+        {
+          params: {
+            amount0_min: 0n,
+            amount1_min: 0n,
+            amount_in: amountInBigInt,
+            deadline: BigInt(
+              Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
+            ),
+            fees_to_token0: token0ZapSwapParams.fees,
+            fees_to_token1: token1ZapSwapParams.fees,
+            min_liquidity: 0n,
+            path_to_token0: token0ZapSwapParams.path,
+            path_to_token1: token1ZapSwapParams.path,
+            pool: poolAddress,
+            recipient: userAddress,
+            sender: userAddress,
+            swap_amount_hint:
+              tokenIn.contract.toLowerCase() === token0.contract.toLowerCase()
+                ? amountToToken1
+                : amountToToken0,
+            swap_to_token0_min_out: token0ZapSwapParams.swapMinOut,
+            swap_to_token1_min_out: token1ZapSwapParams.swapMinOut,
+            tick_lower: tickLower,
+            tick_upper: tickUpper,
+            token_in: tokenIn.contract,
           },
-          {
-            timeoutInSeconds: DEFAULT_TIMEOUT,
-            fee: 100000,
-            simulate: true, // Explicitly enable simulation to ensure footprint is properly set
-          },
-        )
-      } catch (simulationError) {
-        console.error('Transaction simulation failed:', simulationError)
-        throw new Error(
-          `Transaction simulation failed: ${simulationError instanceof Error ? simulationError.message : String(simulationError)}`,
-        )
+        },
+        {
+          timeoutInSeconds: DEFAULT_TIMEOUT,
+          fee: 100000,
+          simulate: true, // Explicitly enable simulation to ensure footprint is properly set
+        },
+      )
+
+      const simulationResult = assembledTransaction.simulation
+      if (
+        simulationResult &&
+        StellarSdk.rpc.Api.isSimulationError(simulationResult)
+      ) {
+        throw new Error(extractErrorMessage(simulationResult.error))
       }
 
       // Sign auth entries for nested authorization (PM -> Pool -> Token transfers)
