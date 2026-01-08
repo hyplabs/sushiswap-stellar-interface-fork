@@ -1,7 +1,7 @@
 import type { PoolBasicInfo } from '../soroban/pool-helpers'
 import type { Token } from '../types/token.type'
-import type { SwapQuote } from './quote-service'
 import type { QuoteService } from './quote-service'
+import type { SwapQuote } from './swap-service'
 
 /**
  * Swap route information
@@ -12,7 +12,6 @@ export interface SwapRoute {
   fees: number[]
   amountIn: bigint
   amountOut: bigint
-  priceImpact: number
   routeType: 'direct' | 'multihop'
 }
 
@@ -68,7 +67,6 @@ export class RouterService {
       fees: bestQuote.fees,
       amountIn: amountIn,
       amountOut: bestQuote.amountOut,
-      priceImpact: bestQuote.priceImpact,
       routeType: bestQuote.routeType,
     }
   }
@@ -106,7 +104,6 @@ export class RouterService {
             amountOut: quote.amountOut,
             path: [pool.tokenA.contract, pool.tokenB.contract],
             fees: [pool.fee],
-            priceImpact: quote.priceImpact,
             routeType: 'direct',
             pools: [pool], // Add pools to track them
           } as SwapQuote & { pools: PoolBasicInfo[] })
@@ -174,7 +171,6 @@ export class RouterService {
                 tokenOut.contract,
               ],
               fees: [pool1.fee, pool2.fee],
-              priceImpact: quote.priceImpact,
               routeType: 'multihop',
               _tokens: [tokenIn, intermediate, tokenOut], // Track Token objects privately
               pools: [pool1, pool2],
@@ -230,24 +226,6 @@ export class RouterService {
     const best = quotes[0]
 
     return best
-  }
-
-  /**
-   * Calculate price impact for a swap
-   */
-  private calculatePriceImpact(
-    amountIn: bigint,
-    amountOut: bigint,
-    poolReserves: { reserveIn: bigint; reserveOut: bigint },
-  ): number {
-    // Simplified price impact calculation
-    // In production, you'd use proper AMM math
-    const currentPrice =
-      Number(poolReserves.reserveOut) / Number(poolReserves.reserveIn)
-    const executionPrice = Number(amountOut) / Number(amountIn)
-    const priceImpact = Math.abs(currentPrice - executionPrice) / currentPrice
-
-    return priceImpact
   }
 
   /**
