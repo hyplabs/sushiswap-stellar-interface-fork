@@ -9,6 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addMinutes } from 'date-fns'
 import { ChainId } from 'sushi'
+import { calculateAmountOutMinimum } from '../../services/router-service'
 import {
   type SushiStellarService,
   createSushiStellarService,
@@ -38,14 +39,6 @@ export interface UseZapParams {
   userAddress: string
   signTransaction: (xdr: string) => Promise<string>
   signAuthEntry: (entryPreimageXdr: string) => Promise<string>
-}
-
-/**
- * Calculate minimum value with slippage protection
- */
-function applySlippage(amount: bigint, slippage: number): bigint {
-  const slippageMultiplier = BigInt(Math.floor((1 - slippage) * 1_000_000))
-  return (amount * slippageMultiplier) / 1_000_000n
 }
 
 export const useZap = () => {
@@ -85,22 +78,27 @@ export const useZap = () => {
         Math.floor(Number.parseFloat(amountIn) * 10 ** tokenInDecimals),
       )
 
+      const amountToToken0 = amountInBigInt / 2n
+      const amountToToken1 = amountInBigInt - amountToToken0 // Handle odd amounts
+
       const zapRouterClient = getZapRouterContractClient({
         contractId: contractAddresses.ZAP_ROUTER,
         publicKey: userAddress,
       })
 
-      // Step 1: Get the routing paths for each pool token
-      // We don't use swapMinOut from these - just the paths and fees
       const token0ZapSwapParams = await getZapSwapParams({
         tokenIn,
         tokenOut: token0,
+        amount: amountToToken0,
+        slippage,
         service,
       })
 
       const token1ZapSwapParams = await getZapSwapParams({
         tokenIn,
         tokenOut: token1,
+        amount: amountToToken1,
+        slippage,
         service,
       })
 
@@ -202,44 +200,40 @@ export const useZap = () => {
   })
 }
 
-/**
- * Get the swap routing parameters for a zap leg.
- * Returns the path and fees needed to swap from tokenIn to tokenOut.
- * If tokenIn === tokenOut, returns empty arrays (no swap needed).
- */
 const getZapSwapParams = async ({
   tokenIn,
   tokenOut,
+  amount,
+  slippage,
   service,
 }: {
   tokenIn: Token
   tokenOut: Token
+  amount: bigint
+  slippage: number
   service: SushiStellarService
 }): Promise<{
   path: string[]
   fees: number[]
+  swapMinOut: bigint
 }> => {
-  // If input token is the same as output token, no swap is needed
   if (tokenIn.contract === tokenOut.contract) {
     return {
       path: [],
       fees: [],
+      swapMinOut: 0n,
     }
   }
-
-  // Find the best route from tokenIn to tokenOut
-  // We use a small amount (1) just to find the route - the actual amount
-  // will be determined by the contract based on optimal split
-  const route = await service.findBestRoute(tokenIn, tokenOut, 1n)
+  const route = await service.findBestRoute(tokenIn, tokenOut, amount)
   if (!route) {
     throw new Error(
-      `No route found between ${tokenIn.code} and ${tokenOut.code}. ` +
-        `Make sure there is liquidity for this token pair.`,
+      `No route found between ${tokenIn.code} and ${tokenOut.code}`,
     )
   }
-
+  const swapMinOut = calculateAmountOutMinimum(route.amountOut, slippage)
   return {
     path: route.path.map((token) => token.contract),
     fees: route.fees,
+    swapMinOut,
   }
 }
