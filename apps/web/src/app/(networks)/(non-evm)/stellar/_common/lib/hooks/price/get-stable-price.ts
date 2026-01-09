@@ -24,7 +24,7 @@ const getTokenPrice = async (token?: Token): Promise<string> => {
       await Promise.all(
         getStableTokens().map((stableToken) => {
           // Find best route to each stable token with 1 unit of the token
-          return service.findBestRoute(token, stableToken, 1n)
+          return service.findBestRoute(token, stableToken, amountInForQuote)
         }),
       )
     ).filter((route): route is NonNullable<typeof route> => route !== null)

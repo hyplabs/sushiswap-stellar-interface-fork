@@ -117,7 +117,6 @@ describe('getCurrencyPrice', () => {
       ),
       path: bestRoute.path.map((t) => t.contract),
       fees: bestRoute.fees,
-      priceImpact: 0,
       routeType: 'multihop',
     })
 
@@ -154,7 +153,6 @@ describe('getCurrencyPrice', () => {
       ),
       path: bestRoute.path.map((t) => t.contract),
       fees: bestRoute.fees,
-      priceImpact: 0,
       routeType: 'multihop',
     })
 

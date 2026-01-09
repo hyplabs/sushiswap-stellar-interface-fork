@@ -22,7 +22,7 @@ export function useTokenWithCache({
         throw new Error('Address is required')
       }
 
-      const cachedToken = customTokens[address]
+      const cachedToken = customTokens[address.toUpperCase()]
       if (cachedToken) {
         return cachedToken
       }

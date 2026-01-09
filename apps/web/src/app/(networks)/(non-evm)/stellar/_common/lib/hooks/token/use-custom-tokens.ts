@@ -19,17 +19,11 @@ export function useCustomTokens() {
   }, [])
 
   const addCustomToken = useCallback(
-    (tokens: Token[]) => {
-      // customTokenMutate('add', [currency])
+    (token: Token) => {
       setValue((prev) => {
-        return tokens.reduce(
-          (acc, cur) => {
-            // Make copy of cur to avoid mutation issues
-            acc[cur.contract.toUpperCase()] = { ...cur }
-            return acc
-          },
-          { ...prev },
-        )
+        const updated = { ...prev }
+        updated[token.contract.toUpperCase()] = token
+        return updated
       })
     },
     [setValue],
@@ -64,9 +58,9 @@ export function useCustomTokens() {
   )
 
   const mutate = useCallback(
-    (type: 'add' | 'remove', currency: Token[]) => {
+    (type: 'add' | 'remove', currency: Token) => {
       if (type === 'add') addCustomToken(currency)
-      if (type === 'remove') removeCustomToken(currency[0])
+      if (type === 'remove') removeCustomToken(currency)
     },
     [addCustomToken, removeCustomToken],
   )

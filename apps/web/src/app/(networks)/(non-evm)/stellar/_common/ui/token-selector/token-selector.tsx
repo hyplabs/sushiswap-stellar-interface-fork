@@ -94,7 +94,7 @@ export default function TokenSelector({
 
   const handleImport = useCallback(
     (currency: Token) => {
-      customTokenMutate('add', [currency])
+      customTokenMutate('add', currency)
       onSelect(currency)
     },
     [onSelect, customTokenMutate],
@@ -197,7 +197,6 @@ export default function TokenSelector({
                 token={queryToken}
                 onImport={() => {
                   queryToken && handleImport(queryToken)
-                  close()
                 }}
               />
             )}
