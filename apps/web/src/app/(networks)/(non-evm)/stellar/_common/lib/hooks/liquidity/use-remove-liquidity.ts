@@ -77,6 +77,7 @@ export const useRemoveLiquidity = () => {
       }
     },
     onSuccess: (result, variables) => {
+      const timestamp = Date.now()
       createSuccessToast({
         summary: `Liquidity ready to collect!`,
         type: 'burn',
@@ -84,8 +85,8 @@ export const useRemoveLiquidity = () => {
         chainId: ChainId.STELLAR,
         txHash: result.decreaseHash,
         href: getStellarTxnLink(result.decreaseHash),
-        groupTimestamp: Date.now(),
-        timestamp: Date.now(),
+        groupTimestamp: timestamp,
+        timestamp,
       })
 
       queryClient.invalidateQueries({
@@ -153,6 +154,7 @@ export const useRemoveLiquidity = () => {
       } else if (collectResult.amount1 > 0n) {
         summary = `Collected ${token1Amount} ${variables.token1.code}`
       }
+      const timestamp = Date.now()
       createSuccessToast({
         summary,
         type: 'claimRewards',
@@ -160,8 +162,8 @@ export const useRemoveLiquidity = () => {
         chainId: ChainId.STELLAR,
         txHash: collectResult.txHash,
         href: getStellarTxnLink(collectResult.txHash),
-        groupTimestamp: Date.now(),
-        timestamp: Date.now(),
+        groupTimestamp: timestamp,
+        timestamp,
       })
     },
   })
@@ -189,7 +191,6 @@ export const useRemoveLiquidity = () => {
           token0: params.token0,
           token1: params.token1,
         })
-      await waitForTransaction(collectResult.txHash)
       return { decreaseResult, collectResult }
     },
     onSuccess: (_result) => {

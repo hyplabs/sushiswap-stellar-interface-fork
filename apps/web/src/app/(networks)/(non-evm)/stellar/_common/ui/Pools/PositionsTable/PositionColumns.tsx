@@ -100,7 +100,7 @@ export const APR_COLUMN: ColumnDef<IPositionRowData, unknown> = {
 
 export const COLLECTABLE_FEES_COLUMN: ColumnDef<IPositionRowData, unknown> = {
   id: 'collectable-fees',
-  header: 'Collectble Fees',
+  header: 'Collectable Fees',
   cell: (props) => <PositionCollectableFeesCell data={props.row.original} />,
   meta: {
     body: {

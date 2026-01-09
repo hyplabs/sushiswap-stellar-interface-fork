@@ -20,7 +20,7 @@ export const PositionCollectFeesCell = ({
 
   // Handle collect fees
   const handleCollectFees = async () => {
-    if (!connectedAddress || !signTransaction) {
+    if (!connectedAddress) {
       createErrorToast('Please connect your wallet', false)
       return
     }
@@ -47,6 +47,7 @@ export const PositionCollectFeesCell = ({
         summary = `Collected ${token1Amount} ${token1.code}`
       }
 
+      const timestamp = Date.now()
       createSuccessToast({
         summary,
         type: 'claimRewards',
@@ -54,8 +55,8 @@ export const PositionCollectFeesCell = ({
         chainId: ChainId.STELLAR,
         txHash: result.txHash,
         href: getStellarTxnLink(result.txHash),
-        groupTimestamp: Date.now(),
-        timestamp: Date.now(),
+        groupTimestamp: timestamp,
+        timestamp,
       })
     } catch (error) {
       console.error(`Failed to collect fees from position ${tokenId}:`, error)

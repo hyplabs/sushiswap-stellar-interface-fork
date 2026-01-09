@@ -136,6 +136,7 @@ export const CollectFeesBox: React.FC<CollectFeesBoxProps> = ({ pool }) => {
           summary = `Collected ${token1Amount} ${pool.token1.code}`
         }
 
+        const timestamp = Date.now()
         createSuccessToast({
           summary,
           type: 'claimRewards',
@@ -143,8 +144,8 @@ export const CollectFeesBox: React.FC<CollectFeesBoxProps> = ({ pool }) => {
           chainId: ChainId.STELLAR,
           txHash: lastTxHash,
           href: getStellarTxnLink(lastTxHash),
-          groupTimestamp: Date.now(),
-          timestamp: Date.now(),
+          groupTimestamp: timestamp,
+          timestamp,
         })
       }
     } catch (error) {
