@@ -9,11 +9,8 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addMinutes } from 'date-fns'
 import { ChainId } from 'sushi'
+import type { RouteWithTokens } from '~stellar/swap/lib/swap-get-route'
 import { calculateAmountOutMinimum } from '../../services/router-service'
-import {
-  type SushiStellarService,
-  createSushiStellarService,
-} from '../../services/sushi-stellar-service'
 import { DEFAULT_TIMEOUT, contractAddresses } from '../../soroban'
 import { getZapRouterContractClient } from '../../soroban/client'
 import {
@@ -39,10 +36,11 @@ export interface UseZapParams {
   userAddress: string
   signTransaction: (xdr: string) => Promise<string>
   signAuthEntry: (entryPreimageXdr: string) => Promise<string>
+  routeToken0: RouteWithTokens | null
+  routeToken1: RouteWithTokens | null
 }
 
 export const useZap = () => {
-  const service = createSushiStellarService()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -64,44 +62,89 @@ export const useZap = () => {
         tokenIn,
         amountIn,
         tokenInDecimals,
-        token0,
-        token1,
         tickLower,
         tickUpper,
         slippage = 0.005,
         userAddress,
         signTransaction,
         signAuthEntry,
+        routeToken0,
+        routeToken1,
+        token0,
+        token1,
       } = params
+
+      if (
+        !routeToken0 &&
+        tokenIn.contract.toUpperCase() !== token0.contract.toUpperCase()
+      ) {
+        throw new Error(`No route from ${tokenIn.code} to ${token0.code}`)
+      }
+      if (
+        !routeToken1 &&
+        tokenIn.contract.toUpperCase() !== token1.contract.toUpperCase()
+      ) {
+        throw new Error(`No route from ${tokenIn.code} to ${token1.code}`)
+      }
 
       const amountInBigInt = BigInt(
         Math.floor(Number.parseFloat(amountIn) * 10 ** tokenInDecimals),
       )
-
-      const amountToToken0 = amountInBigInt / 2n
-      const amountToToken1 = amountInBigInt - amountToToken0 // Handle odd amounts
 
       const zapRouterClient = getZapRouterContractClient({
         contractId: contractAddresses.ZAP_ROUTER,
         publicKey: userAddress,
       })
 
-      const token0ZapSwapParams = await getZapSwapParams({
-        tokenIn,
-        tokenOut: token0,
-        amount: amountToToken0,
-        slippage,
-        service,
-      })
+      const { result: zapQuoteResult } = await zapRouterClient.quote_zap_in(
+        {
+          params: {
+            amount_in: amountInBigInt,
+            fees_to_token0: routeToken0?.fees ?? [],
+            fees_to_token1: routeToken1?.fees ?? [],
+            pool: poolAddress,
+            token_in: tokenIn.contract,
+            path_to_token0: routeToken0?.route ?? [],
+            path_to_token1: routeToken1?.route ?? [],
+            tick_lower: tickLower,
+            tick_upper: tickUpper,
+          },
+        },
+        {
+          timeoutInSeconds: DEFAULT_TIMEOUT,
+        },
+      )
 
-      const token1ZapSwapParams = await getZapSwapParams({
-        tokenIn,
-        tokenOut: token1,
-        amount: amountToToken1,
-        slippage,
-        service,
-      })
+      if (zapQuoteResult.isErr()) {
+        throw new Error(
+          `Error getting zap quote: ${zapQuoteResult.unwrapErr().message}`,
+        )
+      }
 
+      const zapQuote = zapQuoteResult.unwrap()
+
+      console.log('ben123', {
+        amount0_min: calculateAmountOutMinimum(zapQuote.amount0, slippage),
+        amount1_min: calculateAmountOutMinimum(zapQuote.amount1, slippage),
+        amount_in: amountInBigInt,
+        deadline: BigInt(
+          Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
+        ),
+        fees_to_token0: routeToken0?.fees ?? [],
+        fees_to_token1: routeToken1?.fees ?? [],
+        min_liquidity: calculateAmountOutMinimum(zapQuote.liquidity, slippage),
+        path_to_token0: routeToken0?.route ?? [],
+        path_to_token1: routeToken1?.route ?? [],
+        pool: poolAddress,
+        recipient: userAddress,
+        sender: userAddress,
+        swap_amount_hint: zapQuote.swap_amount,
+        swap_to_token0_min_out: 0n,
+        swap_to_token1_min_out: 0n,
+        tick_lower: tickLower,
+        tick_upper: tickUpper,
+        token_in: tokenIn.contract,
+      })
       const assembledTransaction = await zapRouterClient.zap_in(
         {
           params: {
@@ -111,20 +154,17 @@ export const useZap = () => {
             deadline: BigInt(
               Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
             ),
-            fees_to_token0: token0ZapSwapParams.fees,
-            fees_to_token1: token1ZapSwapParams.fees,
+            fees_to_token0: routeToken0?.fees ?? [],
+            fees_to_token1: routeToken1?.fees ?? [],
             min_liquidity: 0n,
-            path_to_token0: token0ZapSwapParams.path,
-            path_to_token1: token1ZapSwapParams.path,
+            path_to_token0: routeToken0?.route ?? [],
+            path_to_token1: routeToken1?.route ?? [],
             pool: poolAddress,
             recipient: userAddress,
             sender: userAddress,
-            swap_amount_hint:
-              tokenIn.contract.toLowerCase() === token0.contract.toLowerCase()
-                ? amountToToken1
-                : amountToToken0,
-            swap_to_token0_min_out: token0ZapSwapParams.swapMinOut,
-            swap_to_token1_min_out: token1ZapSwapParams.swapMinOut,
+            swap_amount_hint: zapQuote.swap_amount,
+            swap_to_token0_min_out: 0n,
+            swap_to_token1_min_out: 0n,
             tick_lower: tickLower,
             tick_upper: tickUpper,
             token_in: tokenIn.contract,
@@ -198,42 +238,4 @@ export const useZap = () => {
       createErrorToast(errorMessage, false)
     },
   })
-}
-
-const getZapSwapParams = async ({
-  tokenIn,
-  tokenOut,
-  amount,
-  slippage,
-  service,
-}: {
-  tokenIn: Token
-  tokenOut: Token
-  amount: bigint
-  slippage: number
-  service: SushiStellarService
-}): Promise<{
-  path: string[]
-  fees: number[]
-  swapMinOut: bigint
-}> => {
-  if (tokenIn.contract === tokenOut.contract) {
-    return {
-      path: [],
-      fees: [],
-      swapMinOut: 0n,
-    }
-  }
-  const route = await service.findBestRoute(tokenIn, tokenOut, amount)
-  if (!route) {
-    throw new Error(
-      `No route found between ${tokenIn.code} and ${tokenOut.code}`,
-    )
-  }
-  const swapMinOut = calculateAmountOutMinimum(route.amountOut, slippage)
-  return {
-    path: route.path.map((token) => token.contract),
-    fees: route.fees,
-    swapMinOut,
-  }
 }

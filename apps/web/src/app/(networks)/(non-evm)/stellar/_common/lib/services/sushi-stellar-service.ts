@@ -8,11 +8,7 @@ import {
 import type { Token } from '../types/token.type'
 import { type CollectParams, positionService } from './position-service'
 import { QuoteService, type SwapQuote } from './quote-service'
-import {
-  RouterService,
-  type SwapRoute,
-  formatRouteForUser,
-} from './router-service'
+import { type SwapRoute, formatRouteForUser } from './router-service'
 import {
   type AddLiquidityParams,
   type SwapExactInputParams,
@@ -27,12 +23,10 @@ import {
 export class SushiStellarService {
   private swapService: SwapService
   private quoteService: QuoteService
-  private routerService: RouterService
 
   constructor() {
     this.swapService = new SwapService()
     this.quoteService = new QuoteService()
-    this.routerService = new RouterService(this.quoteService)
   }
 
   /**
@@ -191,17 +185,6 @@ export class SushiStellarService {
       throw new Error('Failed to get quote for multi-hop swap')
     }
     return quote
-  }
-
-  /**
-   * Find the best route between two tokens
-   */
-  async findBestRoute(
-    tokenIn: Token,
-    tokenOut: Token,
-    amountIn: bigint,
-  ): Promise<SwapRoute | null> {
-    return await this.routerService.findBestRoute(tokenIn, tokenOut, amountIn)
   }
 
   /**
