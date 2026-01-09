@@ -74,16 +74,15 @@ export const useZap = () => {
         token1,
       } = params
 
-      if (
-        !routeToken0 &&
-        tokenIn.contract.toUpperCase() !== token0.contract.toUpperCase()
-      ) {
+      const isZapTokenToken0 =
+        tokenIn.contract.toUpperCase() === token0.contract.toUpperCase()
+      const isZapTokenToken1 =
+        tokenIn.contract.toUpperCase() === token1.contract.toUpperCase()
+
+      if (!routeToken0 && !isZapTokenToken0) {
         throw new Error(`No route from ${tokenIn.code} to ${token0.code}`)
       }
-      if (
-        !routeToken1 &&
-        tokenIn.contract.toUpperCase() !== token1.contract.toUpperCase()
-      ) {
+      if (!routeToken1 && !isZapTokenToken1) {
         throw new Error(`No route from ${tokenIn.code} to ${token1.code}`)
       }
 
@@ -123,46 +122,30 @@ export const useZap = () => {
 
       const zapQuote = zapQuoteResult.unwrap()
 
-      console.log('ben123', {
-        amount0_min: calculateAmountOutMinimum(zapQuote.amount0, slippage),
-        amount1_min: calculateAmountOutMinimum(zapQuote.amount1, slippage),
-        amount_in: amountInBigInt,
-        deadline: BigInt(
-          Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
-        ),
-        fees_to_token0: routeToken0?.fees ?? [],
-        fees_to_token1: routeToken1?.fees ?? [],
-        min_liquidity: calculateAmountOutMinimum(zapQuote.liquidity, slippage),
-        path_to_token0: routeToken0?.route ?? [],
-        path_to_token1: routeToken1?.route ?? [],
-        pool: poolAddress,
-        recipient: userAddress,
-        sender: userAddress,
-        swap_amount_hint: zapQuote.swap_amount,
-        swap_to_token0_min_out: 0n,
-        swap_to_token1_min_out: 0n,
-        tick_lower: tickLower,
-        tick_upper: tickUpper,
-        token_in: tokenIn.contract,
-      })
       const assembledTransaction = await zapRouterClient.zap_in(
         {
           params: {
-            amount0_min: 0n,
-            amount1_min: 0n,
+            amount0_min: calculateAmountOutMinimum(zapQuote.amount0, slippage),
+            amount1_min: calculateAmountOutMinimum(zapQuote.amount1, slippage),
             amount_in: amountInBigInt,
             deadline: BigInt(
               Math.floor(addMinutes(new Date(), 5).valueOf() / 1000),
             ),
             fees_to_token0: routeToken0?.fees ?? [],
             fees_to_token1: routeToken1?.fees ?? [],
-            min_liquidity: 0n,
+            min_liquidity: calculateAmountOutMinimum(
+              zapQuote.liquidity,
+              slippage,
+            ),
             path_to_token0: routeToken0?.route ?? [],
             path_to_token1: routeToken1?.route ?? [],
             pool: poolAddress,
             recipient: userAddress,
             sender: userAddress,
-            swap_amount_hint: zapQuote.swap_amount,
+            swap_amount_hint:
+              isZapTokenToken0 || isZapTokenToken1
+                ? zapQuote.swap_amount
+                : undefined,
             swap_to_token0_min_out: 0n,
             swap_to_token1_min_out: 0n,
             tick_lower: tickLower,
