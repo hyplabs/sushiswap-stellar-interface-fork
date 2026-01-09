@@ -1,7 +1,7 @@
 import { Networks } from '@stellar/stellar-sdk'
 
 // SET THIS FLAG AS NEEDED - this change cascades to many areas of the codebase
-export const IS_FUTURENET = true
+export const IS_FUTURENET = false
 
 export const RPC_URL = IS_FUTURENET
   ? 'https://rpc-futurenet.stellar.org'
