@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { calculatePriceFromTick } from '../../soroban/pool-helpers'
 import type { PoolInfo } from '../../types/pool.type'
-import { TICK_SPACINGS, type FeeTier, isFeeTier } from '../../utils/ticks'
+import { type FeeTier, TICK_SPACINGS, isFeeTier } from '../../utils/ticks'
 import { type PopulatedTick, useTicks } from './use-ticks'
 
 const PRICE_FIXED_DIGITS = 8
@@ -117,7 +117,9 @@ export function useConcentratedActiveLiquidity({
         tick: tick.tickIdx,
         liquidityActive: currentLiquidity,
         liquidityNet: tick.liquidityNet,
-        price0: calculatePriceFromTick(tick.tickIdx).toFixed(PRICE_FIXED_DIGITS),
+        price0: calculatePriceFromTick(tick.tickIdx).toFixed(
+          PRICE_FIXED_DIGITS,
+        ),
       })
 
       // Subtract this tick's liquidityNet for the next iteration (going further down)
@@ -136,24 +138,11 @@ export function useConcentratedActiveLiquidity({
         tick: tick.tickIdx,
         liquidityActive: currentLiquidity,
         liquidityNet: tick.liquidityNet,
-        price0: calculatePriceFromTick(tick.tickIdx).toFixed(PRICE_FIXED_DIGITS),
+        price0: calculatePriceFromTick(tick.tickIdx).toFixed(
+          PRICE_FIXED_DIGITS,
+        ),
       })
     }
-
-    // Debug logging
-    console.log('[useConcentratedActiveLiquidity] Processed ticks:', {
-      activeTick,
-      poolLiquidity: poolLiquidity.toString(),
-      inputTicks: ticks.map((t) => ({
-        tick: t.tickIdx,
-        liquidityNet: t.liquidityNet.toString(),
-      })),
-      outputTicks: processedTicks.map((t) => ({
-        tick: t.tick,
-        liquidityActive: t.liquidityActive.toString(),
-        price0: t.price0,
-      })),
-    })
 
     return {
       isLoading: false,

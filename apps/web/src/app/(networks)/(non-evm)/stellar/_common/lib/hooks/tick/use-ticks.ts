@@ -2,8 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query'
 import ms from 'ms'
+import { contractAddresses } from '../../soroban'
+import { getPoolLensContractClient } from '../../soroban/client'
 import type { PoolInfo } from '../../types/pool.type'
-import { TICK_SPACINGS, type FeeTier, isFeeTier } from '../../utils/ticks'
+import {
+  type FeeTier,
+  MAX_TICK_RANGE,
+  TICK_SPACINGS,
+  isFeeTier,
+} from '../../utils/ticks'
 
 export interface PopulatedTick {
   tickIdx: number
@@ -25,7 +32,7 @@ const nearestUsableTick = (tick: number, tickSpacing: number): number => {
 }
 
 /**
- * Mock tick data that simulates realistic liquidity positions.
+ * This currently returns mock data for testing the UI.
  *
  * This creates ticks that mirror what you'd see from real positions:
  * - Position 1: +/- 1% of current price (tight range around current tick)
@@ -36,9 +43,9 @@ const nearestUsableTick = (tick: number, tickSpacing: number): number => {
  * - Lower tick: +liquidityNet (liquidity enters the range)
  * - Upper tick: -liquidityNet (liquidity exits the range)
  */
-async function fetchMockTicks(
+async function fetchTicks(
   pool: PoolInfo,
-  _numSurroundingTicks: number,
+  numSurroundingTicks: number,
 ): Promise<PopulatedTick[]> {
   const tickSpacing = isFeeTier(pool.fee)
     ? TICK_SPACINGS[pool.fee as FeeTier]
@@ -46,132 +53,50 @@ async function fetchMockTicks(
 
   const currentTick = pool.tick
   const activeTick = nearestUsableTick(currentTick, tickSpacing)
+  const activeIndex = activeTick / (256 * tickSpacing)
 
-  const mockTicks: PopulatedTick[] = []
+  const minIndex =
+    activeIndex - Math.ceil(numSurroundingTicks / (256 * tickSpacing))
+  const maxIndex =
+    activeIndex + Math.floor(numSurroundingTicks / (256 * tickSpacing))
 
-  // Helper to add a position (creates lower and upper tick)
-  const addPosition = (
-    lowerTick: number,
-    upperTick: number,
-    liquidity: bigint,
-  ) => {
-    const alignedLower = nearestUsableTick(lowerTick, tickSpacing)
-    const alignedUpper = nearestUsableTick(upperTick, tickSpacing)
+  const populatedTicks: PopulatedTick[] = []
 
-    // Lower tick: liquidity enters (positive liquidityNet)
-    mockTicks.push({
-      tickIdx: alignedLower,
-      liquidityNet: liquidity,
-      liquidityGross: liquidity,
-    })
-
-    // Upper tick: liquidity exits (negative liquidityNet)
-    mockTicks.push({
-      tickIdx: alignedUpper,
-      liquidityNet: -liquidity,
-      liquidityGross: liquidity,
-    })
-  }
-
-  // Base liquidity unit (scaled to pool's liquidity)
-  const baseLiquidity = BigInt(pool.liquidity.amount) / 5n
-
-  // Position 1: +/- 1% of current price
-  // 1% price change ≈ ~100 ticks (since 1.0001^100 ≈ 1.01)
-  // Using +/- 120 ticks to align with tick spacing of 60
-  addPosition(
-    activeTick - 120, // ~1% below current price
-    activeTick + 120, // ~1% above current price
-    baseLiquidity * 3n, // Main position, larger liquidity
-  )
-
-  // Position 2: prices 1.5x to 2x current
-  // price = 1.0001^tick, so:
-  // tick for 1.5x: ln(1.5) / ln(1.0001) ≈ 4055
-  // tick for 2x: ln(2) / ln(1.0001) ≈ 6931
-  // Align to tick spacing
-  addPosition(
-    activeTick + nearestUsableTick(4055, tickSpacing),
-    activeTick + nearestUsableTick(6931, tickSpacing),
-    baseLiquidity,
-  )
-
-  // Position 3: Some liquidity in a wider range (0.5x to 3x price)
-  // tick for 0.5x: ln(0.5) / ln(1.0001) ≈ -6931
-  // tick for 3x: ln(3) / ln(1.0001) ≈ 10986
-  addPosition(
-    activeTick + nearestUsableTick(-6931, tickSpacing),
-    activeTick + nearestUsableTick(10986, tickSpacing),
-    baseLiquidity / 2n,
-  )
-
-  // Position 4: Very tight position right at current price
-  addPosition(
-    activeTick - tickSpacing,
-    activeTick + tickSpacing,
-    baseLiquidity * 2n,
-  )
-
-  // Merge ticks at the same index (combine liquidityNet values)
-  const tickMap = new Map<number, PopulatedTick>()
-  for (const tick of mockTicks) {
-    const existing = tickMap.get(tick.tickIdx)
-    if (existing) {
-      existing.liquidityNet = existing.liquidityNet + tick.liquidityNet
-      existing.liquidityGross = existing.liquidityGross + tick.liquidityGross
-    } else {
-      tickMap.set(tick.tickIdx, { ...tick })
-    }
-  }
-
-  // Convert back to array and sort
-  const result = Array.from(tickMap.values())
-    .filter((t) => t.liquidityNet !== 0n) // Remove ticks where liquidity cancels out
-    .sort((a, b) => a.tickIdx - b.tickIdx)
-
-  // Debug logging
-  console.log('[useTicks] Generated mock ticks:', {
-    currentTick,
-    activeTick,
-    tickSpacing,
-    positions: [
-      { name: 'Tight ±1%', lower: activeTick - 120, upper: activeTick + 120 },
-      { name: 'Wide 1.5x-2x', lower: activeTick + 4055, upper: activeTick + 6931 },
-      { name: 'Very wide 0.5x-3x', lower: activeTick - 6931, upper: activeTick + 10986 },
-      { name: 'Current price ±1 spacing', lower: activeTick - tickSpacing, upper: activeTick + tickSpacing },
-    ],
-    ticks: result.map((t) => ({
-      tick: t.tickIdx,
-      liquidityNet: t.liquidityNet.toString(),
-    })),
+  const poolLensContractClient = getPoolLensContractClient({
+    contractId: contractAddresses.POOL_LENS,
   })
 
-  return result
+  const populatedTickAssembledTransaction =
+    await poolLensContractClient.get_populated_ticks_in_range({
+      pool: pool.address,
+      start_word: minIndex,
+      count: maxIndex - minIndex + 1,
+    })
+
+  if (populatedTickAssembledTransaction.result.truncated) {
+    console.warn('Warning: fetched ticks were truncated')
+  }
+
+  for (const populatedTick of populatedTickAssembledTransaction.result.ticks) {
+    populatedTicks.push({
+      tickIdx: populatedTick.tick,
+      liquidityNet: populatedTick.liquidity_net,
+      liquidityGross: populatedTick.liquidity_gross,
+    })
+  }
+
+  // Sort by tick index
+  populatedTicks.sort((a, b) => a.tickIdx - b.tickIdx)
+
+  return populatedTicks
 }
 
 /**
  * Hook to fetch tick data for a Stellar pool
- *
- * TODO: Replace mock implementation with actual contract calls
- * once TickLens is deployed. Example:
- *
- * ```ts
- * const poolLensClient = getPoolLensContractClient({
- *   contractId: contractAddresses.POOL_LENS,
- * })
- *
- * for (let i = minIndex; i <= maxIndex; i++) {
- *   const result = await poolLensClient.get_populated_ticks_in_word({
- *     pool: poolAddress,
- *     tick_bitmap_index: i,
- *   })
- *   ticks.push(...result.result)
- * }
- * ```
  */
 export function useTicks({
   pool,
-  numSurroundingTicks = 300,
+  numSurroundingTicks = (MAX_TICK_RANGE.upper - MAX_TICK_RANGE.lower) / 2,
   enabled = true,
 }: UseTicksProps) {
   return useQuery({
@@ -179,19 +104,16 @@ export function useTicks({
       'stellar',
       'pool',
       'ticks',
-      {
-        poolAddress: pool?.address,
-        tick: pool?.tick,
-        numSurroundingTicks,
-      },
+      pool?.address,
+      pool?.tick,
+      numSurroundingTicks,
     ],
     queryFn: async () => {
       if (!pool) {
         throw new Error('Pool is required')
       }
 
-      // TODO: Replace with actual contract call
-      return fetchMockTicks(pool, numSurroundingTicks)
+      return fetchTicks(pool, numSurroundingTicks)
     },
     enabled: Boolean(pool && enabled),
     staleTime: ms('30s'),
