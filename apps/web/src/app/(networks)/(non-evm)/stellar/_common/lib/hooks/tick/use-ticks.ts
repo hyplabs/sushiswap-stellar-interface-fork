@@ -148,5 +148,3 @@ export function useTicks({
     refetchInterval: ms('30s'),
   })
 }
-
-
