@@ -40,36 +40,24 @@ export const Chart: FC<LiquidityChartRangeInputProps> = ({
   )
 
   const { xScale, yScale } = useMemo(() => {
-    // First compute the x-scale domain
-    let xDomain = [
-      current * zoomLevels.initialMin,
-      current * zoomLevels.initialMax,
-    ] as [number, number]
-
-    const xScaleInitial = scaleLinear().domain(xDomain).range([0, innerWidth])
+    // Compute x-scale domain
+    const xScale = scaleLinear()
+      .domain([
+        current * zoomLevels.initialMin,
+        current * zoomLevels.initialMax,
+      ] as number[])
+      .range([0, innerWidth])
 
     // Apply zoom if present
     if (zoom) {
-      const newXscale = zoom.rescaleX(xScaleInitial)
-      xDomain = newXscale.domain() as [number, number]
+      const newXscale = zoom.rescaleX(xScale)
+      xScale.domain(newXscale.domain())
     }
 
-    const xScale = scaleLinear().domain(xDomain).range([0, innerWidth])
-
-    // Compute y-scale based only on data visible within x-domain
-    // This prevents off-screen outliers from squashing the visible chart
-    const [minX, maxX] = xDomain
-    const visibleSeries = series.filter((d) => {
-      const x = xAccessor(d)
-      return x >= minX && x <= maxX
-    })
-
-    // Use visible data for y-max, with fallback to full series if nothing visible
-    const yMax =
-      max(visibleSeries, yAccessor) ?? max(series, yAccessor) ?? 0
-
+    // Use global max for y-scale (not just visible data)
+    // This keeps the scale consistent and avoids disorientation when panning
     const yScale = scaleLinear()
-      .domain([0, yMax] as number[])
+      .domain([0, max(series, yAccessor)] as number[])
       .range([innerHeight, 0])
 
     return { xScale, yScale }

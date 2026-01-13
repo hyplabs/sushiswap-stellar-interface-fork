@@ -14,22 +14,29 @@ interface AreaProps {
 }
 
 /**
- * Filter series data for rendering, keeping points needed for proper step-after rendering.
+ * Prepare series data for rendering with curveStepAfter.
  *
  * With curveStepAfter, a point at x_0 determines the y-value for the range [x_0, x_1).
- * If x_0 is off-screen but x_1 is visible, we need to keep x_0 so the visible portion
- * of [x_0, x_1) renders correctly.
+ * This means:
+ * 1. If x_0 is off-screen but x_1 is visible, we need to keep x_0 so the visible portion
+ *    of [x_0, x_1) renders correctly.
+ * 2. The LAST point in the series needs a synthetic "end" point so its value extends
+ *    to the right edge of the chart.
  *
- * We keep:
- * - One point to the left of the visible area (for proper left edge rendering)
- * - All points within the visible area
- * - One point to the right of the visible area (for proper right edge rendering)
+ * We:
+ * - Keep one point to the left of the visible area (for proper left edge rendering)
+ * - Keep all points within the visible area
+ * - Keep one point to the right of the visible area (for proper right edge rendering)
+ * - Add a synthetic end point if the last visible point's liquidity should extend further
  */
-function filterSeriesForRendering(
+function prepareSeriesForRendering(
   series: ChartEntry[],
   xScale: ScaleLinear<number, number>,
   xValue: (d: ChartEntry) => number,
+  yValue: (d: ChartEntry) => number,
 ): ChartEntry[] {
+  if (series.length === 0) return []
+
   const domain = xScale.domain()
   const [minX, maxX] = domain
 
@@ -51,7 +58,34 @@ function filterSeriesForRendering(
   const startIdx = Math.max(0, leftBoundaryIdx)
   const endIdx = Math.min(series.length, rightBoundaryIdx + 1)
 
-  return series.slice(startIdx, endIdx)
+  const filtered = series.slice(startIdx, endIdx)
+
+  // If the last point in our filtered series is within or before the visible area,
+  // we need to add a synthetic end point so its step extends to the right edge.
+  // This is because curveStepAfter draws from point[i] to point[i+1], so the last
+  // point needs somewhere to "step to".
+  if (filtered.length > 0) {
+    const lastPoint = filtered[filtered.length - 1]
+    const lastX = xValue(lastPoint)
+    const lastY = yValue(lastPoint)
+
+    // If the last point is within the visible area and has non-zero liquidity,
+    // add a synthetic point at the right edge (or beyond) with the same y-value
+    if (lastX <= maxX && lastY > 0) {
+      // Check if there's already a point beyond maxX
+      const hasPointBeyond = rightBoundaryIdx < series.length
+
+      if (!hasPointBeyond) {
+        // Add a synthetic end point to extend the step
+        filtered.push({
+          price0: maxX * 1.1, // Slightly beyond the right edge
+          activeLiquidity: lastY,
+        })
+      }
+    }
+  }
+
+  return filtered
 }
 
 export const Area: FC<AreaProps> = ({
@@ -64,7 +98,12 @@ export const Area: FC<AreaProps> = ({
   opacity,
 }) =>
   useMemo(() => {
-    const filteredSeries = filterSeriesForRendering(series, xScale, xValue)
+    const preparedSeries = prepareSeriesForRendering(
+      series,
+      xScale,
+      xValue,
+      yValue,
+    )
 
     return (
       <path
@@ -77,7 +116,7 @@ export const Area: FC<AreaProps> = ({
             .x((d: unknown) => xScale(xValue(d as ChartEntry)))
             .y1((d: unknown) => yScale(yValue(d as ChartEntry)))
             .y0(yScale(0))(
-            filteredSeries as Iterable<[number, number]>,
+            preparedSeries as Iterable<[number, number]>,
           ) ?? undefined
         }
       />
