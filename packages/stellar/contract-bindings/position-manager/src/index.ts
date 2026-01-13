@@ -216,7 +216,7 @@ export type PositionManagerDataKey = {tag: "Factory", values: void} | {tag: "Xlm
 /**
  * Error codes for the periphery libraries
  */
-export const LibraryErrors = {
+export const PeripheryLibraryErrors = {
   /**
    * Hex string length is insufficient for the requested conversion
    */
@@ -274,7 +274,7 @@ weight: u128;
 /**
  * Error codes for the periphery base contract
  */
-export const Errors = {
+export const PeripheryBaseErrors = {
   /**
    * Transaction has exceeded the deadline
    */
@@ -362,9 +362,17 @@ export const Errors = {
 }
 
 /**
+ * Combined error codes for backwards compatibility
+ */
+export const Errors = {
+  ...PeripheryLibraryErrors,
+  ...PeripheryBaseErrors,
+}
+
+/**
  * Keys under which we'll store the immutable fields
  */
-export type BaseDataKey = {tag: "Factory", values: void} | {tag: "XlmAddress", values: void};
+export type ImmutableFieldsDataKey = {tag: "Factory", values: void} | {tag: "XlmAddress", values: void};
 
 /**
  * Storage keys for the data associated with the allowlist extension

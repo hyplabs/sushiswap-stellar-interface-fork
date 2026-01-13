@@ -511,7 +511,7 @@ fees1: u128;
 /**
  * Error codes for the periphery libraries
  */
-export const LibraryErrors = {
+export const PeripheryLibraryErrors = {
   /**
    * Hex string length is insufficient for the requested conversion
    */
@@ -569,7 +569,7 @@ weight: u128;
 /**
  * Error codes for the periphery base contract
  */
-export const Errors = {
+export const PeripheryBaseErrors = {
   /**
    * Transaction has exceeded the deadline
    */
@@ -657,9 +657,9 @@ export const Errors = {
 }
 
 /**
- * Keys under which we'll store the immutable fields
+ * Keys under which we'll store the immutable fields (Position Manager)
  */
-export type BaseDataKey = {tag: "Factory", values: void} | {tag: "XlmAddress", values: void};
+export type PositionManagerDataKey = {tag: "Factory", values: void} | {tag: "XlmAddress", values: void};
 
 /**
  * Q128.128 fixed-point number
