@@ -1,6 +1,12 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle, SkeletonBox } from '@sushiswap/ui'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  SkeletonBox,
+} from '@sushiswap/ui'
 import React, { type FC } from 'react'
 import type { PoolInfo } from '~stellar/_common/lib/types/pool.type'
 import { LiquidityChartRangeInput } from '../LiquidityChartRangeInput'
@@ -15,8 +21,6 @@ interface LiquidityDepthWidgetProps {
  * This shows the distribution of liquidity across price ranges,
  * helping LPs understand where liquidity is concentrated.
  *
- * TODO: Once TickLens contract is deployed, replace the mock data
- * in use-ticks.ts with actual contract calls.
  */
 export const LiquidityDepthWidget: FC<LiquidityDepthWidgetProps> = ({
   pool,
@@ -45,5 +49,3 @@ export const LiquidityDepthWidget: FC<LiquidityDepthWidgetProps> = ({
     </Card>
   )
 }
-
-
