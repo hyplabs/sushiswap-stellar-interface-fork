@@ -27,13 +27,13 @@ interface AreaProps {
  * - Keep one point to the left of the visible area (for proper left edge rendering)
  * - Keep all points within the visible area
  * - Keep one point to the right of the visible area (for proper right edge rendering)
- * - Add a synthetic end point if the last visible point's liquidity should extend further
+ * - Clamp x-coordinates to [minX, maxX] so steps fill the visible area properly
+ *   (also avoids issues with very large numbers that may not render correctly)
  */
 function prepareSeriesForRendering(
   series: ChartEntry[],
   xScale: ScaleLinear<number, number>,
   xValue: (d: ChartEntry) => number,
-  yValue: (d: ChartEntry) => number,
 ): ChartEntry[] {
   if (series.length === 0) return []
 
@@ -58,34 +58,14 @@ function prepareSeriesForRendering(
   const startIdx = Math.max(0, leftBoundaryIdx)
   const endIdx = Math.min(series.length, rightBoundaryIdx + 1)
 
-  const filtered = series.slice(startIdx, endIdx)
-
-  // If the last point in our filtered series is within or before the visible area,
-  // we need to add a synthetic end point so its step extends to the right edge.
-  // This is because curveStepAfter draws from point[i] to point[i+1], so the last
-  // point needs somewhere to "step to".
-  if (filtered.length > 0) {
-    const lastPoint = filtered[filtered.length - 1]
-    const lastX = xValue(lastPoint)
-    const lastY = yValue(lastPoint)
-
-    // If the last point is within the visible area and has non-zero liquidity,
-    // add a synthetic point at the right edge (or beyond) with the same y-value
-    if (lastX <= maxX && lastY > 0) {
-      // Check if there's already a point beyond maxX
-      const hasPointBeyond = rightBoundaryIdx < series.length
-
-      if (!hasPointBeyond) {
-        // Add a synthetic end point to extend the step
-        filtered.push({
-          price0: maxX * 1.1, // Slightly beyond the right edge
-          activeLiquidity: lastY,
-        })
-      }
+  // Slice and clamp x-coordinates to [minX, maxX]
+  // This avoids rendering issues with very large numbers (scientific notation, etc.)
+  return series.slice(startIdx, endIdx).map((d) => {
+    return {
+      ...d,
+      price0: Math.min(maxX, Math.max(d.price0, minX)),
     }
-  }
-
-  return filtered
+  })
 }
 
 export const Area: FC<AreaProps> = ({
@@ -98,12 +78,7 @@ export const Area: FC<AreaProps> = ({
   opacity,
 }) =>
   useMemo(() => {
-    const preparedSeries = prepareSeriesForRendering(
-      series,
-      xScale,
-      xValue,
-      yValue,
-    )
+    const preparedSeries = prepareSeriesForRendering(series, xScale, xValue)
 
     return (
       <path
@@ -113,11 +88,10 @@ export const Area: FC<AreaProps> = ({
         d={
           area()
             .curve(curveStepAfter)
-            .x((d: unknown) => xScale(xValue(d as ChartEntry)))
+            .x((d: unknown) => xScale((d as ChartEntry).price0))
             .y1((d: unknown) => yScale(yValue(d as ChartEntry)))
-            .y0(yScale(0))(
-            preparedSeries as Iterable<[number, number]>,
-          ) ?? undefined
+            .y0(yScale(0))(preparedSeries as Iterable<[number, number]>) ??
+          undefined
         }
       />
     )
