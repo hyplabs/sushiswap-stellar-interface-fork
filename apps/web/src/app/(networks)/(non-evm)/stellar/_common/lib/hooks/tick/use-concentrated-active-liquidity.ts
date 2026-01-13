@@ -16,59 +16,10 @@ export interface TickProcessed {
 }
 
 /**
- * Get the nearest usable tick for the pool
+ * Get the nearest usable tick for the pool (rounded down to tick spacing)
  */
 const getActiveTick = (tickCurrent: number, tickSpacing: number): number => {
   return Math.floor(tickCurrent / tickSpacing) * tickSpacing
-}
-
-/**
- * Compute surrounding ticks with active liquidity
- * This mirrors the EVM implementation in src/lib/functions.ts
- */
-function computeSurroundingTicks(
-  activeTickProcessed: TickProcessed,
-  sortedTickData: PopulatedTick[],
-  pivot: number,
-  ascending: boolean,
-): TickProcessed[] {
-  let previousTickProcessed: TickProcessed = {
-    ...activeTickProcessed,
-  }
-
-  const processedTicks: TickProcessed[] = []
-
-  for (
-    let i = pivot + (ascending ? 1 : -1);
-    ascending ? i < sortedTickData.length : i >= 0;
-    ascending ? i++ : i--
-  ) {
-    const tick = sortedTickData[i].tickIdx
-    const currentTickProcessed: TickProcessed = {
-      liquidityActive: previousTickProcessed.liquidityActive,
-      tick,
-      liquidityNet: sortedTickData[i].liquidityNet,
-      price0: calculatePriceFromTick(tick).toFixed(PRICE_FIXED_DIGITS),
-    }
-
-    // Update the active liquidity
-    if (ascending) {
-      currentTickProcessed.liquidityActive =
-        previousTickProcessed.liquidityActive + sortedTickData[i].liquidityNet
-    } else if (!ascending && previousTickProcessed.liquidityNet !== 0n) {
-      currentTickProcessed.liquidityActive =
-        previousTickProcessed.liquidityActive - previousTickProcessed.liquidityNet
-    }
-
-    processedTicks.push(currentTickProcessed)
-    previousTickProcessed = currentTickProcessed
-  }
-
-  if (!ascending) {
-    processedTicks.reverse()
-  }
-
-  return processedTicks
 }
 
 interface UseConcentratedActiveLiquidityProps {
@@ -77,8 +28,16 @@ interface UseConcentratedActiveLiquidityProps {
 }
 
 /**
- * Hook to get active liquidity data for the density chart
- * Processes raw tick data into chart-ready format
+ * Hook to get active liquidity data for the density chart.
+ *
+ * Processes raw tick data into chart-ready format by computing the
+ * cumulative active liquidity at each tick position.
+ *
+ * The algorithm:
+ * 1. Find where the current pool tick falls in the sorted tick array
+ * 2. Starting from the pool's current liquidity, iterate outward
+ * 3. Going up: add liquidityNet at each tick crossed
+ * 4. Going down: subtract liquidityNet at each tick crossed
  */
 export function useConcentratedActiveLiquidity({
   pool,
@@ -107,56 +66,100 @@ export function useConcentratedActiveLiquidity({
       ? TICK_SPACINGS[pool.fee as FeeTier]
       : 60
 
+    // The active tick is the current tick rounded down to tick spacing
     const activeTick = getActiveTick(pool.tick, tickSpacing)
-
-    // Find where the active tick would be to partition the array
-    const pivot = ticks.findIndex(({ tickIdx }) => tickIdx > activeTick) - 1
-
-    if (pivot < 0) {
-      // No ticks found around the active tick
-      console.warn('TickData pivot not found')
-      return {
-        isLoading: false,
-        error,
-        activeTick,
-        data: undefined,
-      }
-    }
-
     const poolLiquidity = BigInt(pool.liquidity.amount)
 
-    const activeTickProcessed: TickProcessed = {
-      liquidityActive: poolLiquidity,
-      tick: activeTick,
-      liquidityNet:
-        ticks[pivot].tickIdx === activeTick ? ticks[pivot].liquidityNet : 0n,
-      price0: calculatePriceFromTick(activeTick).toFixed(PRICE_FIXED_DIGITS),
+    // Find the index of the first tick that is > activeTick
+    // This tells us where to split the array
+    const firstTickAboveActive = ticks.findIndex(
+      ({ tickIdx }) => tickIdx > activeTick,
+    )
+
+    // Determine which ticks are below/at activeTick and which are above
+    let ticksBelowOrAt: PopulatedTick[]
+    let ticksAbove: PopulatedTick[]
+
+    if (firstTickAboveActive === -1) {
+      // All ticks are <= activeTick
+      ticksBelowOrAt = ticks
+      ticksAbove = []
+    } else if (firstTickAboveActive === 0) {
+      // All ticks are > activeTick
+      ticksBelowOrAt = []
+      ticksAbove = ticks
+    } else {
+      ticksBelowOrAt = ticks.slice(0, firstTickAboveActive)
+      ticksAbove = ticks.slice(firstTickAboveActive)
     }
 
-    const subsequentTicks = computeSurroundingTicks(
-      activeTickProcessed,
-      ticks,
-      pivot,
-      true,
-    )
-    const previousTicks = computeSurroundingTicks(
-      activeTickProcessed,
-      ticks,
-      pivot,
-      false,
-    )
+    const processedTicks: TickProcessed[] = []
 
-    const ticksProcessed = previousTicks
-      .concat(activeTickProcessed)
-      .concat(subsequentTicks)
+    // Process ticks BELOW the active tick (going from activeTick downward)
+    // We iterate in reverse order (from closest to activeTick to furthest)
+    // and subtract liquidityNet as we cross each tick going down
+    let currentLiquidity = poolLiquidity
+
+    // Go through ticks below in reverse order (closest to active first)
+    for (let i = ticksBelowOrAt.length - 1; i >= 0; i--) {
+      const tick = ticksBelowOrAt[i]
+
+      // When crossing a tick going DOWN, we subtract that tick's liquidityNet
+      // But we do this AFTER recording the liquidity for this tick
+      // because the liquidity shown at a tick is the liquidity IN the range
+      // that starts at that tick
+
+      // First, if this isn't the first tick we process, subtract the previous tick's net
+      // Actually, the convention is: liquidityNet is added when crossing UP, subtracted when crossing DOWN
+      // When we're at tick T going down to tick T-1, we subtract T's liquidityNet
+
+      processedTicks.unshift({
+        tick: tick.tickIdx,
+        liquidityActive: currentLiquidity,
+        liquidityNet: tick.liquidityNet,
+        price0: calculatePriceFromTick(tick.tickIdx).toFixed(PRICE_FIXED_DIGITS),
+      })
+
+      // Subtract this tick's liquidityNet for the next iteration (going further down)
+      currentLiquidity = currentLiquidity - tick.liquidityNet
+    }
+
+    // Process ticks ABOVE the active tick (going from activeTick upward)
+    // We add liquidityNet as we cross each tick going up
+    currentLiquidity = poolLiquidity
+
+    for (const tick of ticksAbove) {
+      // When crossing a tick going UP, we add that tick's liquidityNet
+      currentLiquidity = currentLiquidity + tick.liquidityNet
+
+      processedTicks.push({
+        tick: tick.tickIdx,
+        liquidityActive: currentLiquidity,
+        liquidityNet: tick.liquidityNet,
+        price0: calculatePriceFromTick(tick.tickIdx).toFixed(PRICE_FIXED_DIGITS),
+      })
+    }
+
+    // Debug logging
+    console.log('[useConcentratedActiveLiquidity] Processed ticks:', {
+      activeTick,
+      poolLiquidity: poolLiquidity.toString(),
+      inputTicks: ticks.map((t) => ({
+        tick: t.tickIdx,
+        liquidityNet: t.liquidityNet.toString(),
+      })),
+      outputTicks: processedTicks.map((t) => ({
+        tick: t.tick,
+        liquidityActive: t.liquidityActive.toString(),
+        price0: t.price0,
+      })),
+    })
 
     return {
       isLoading: false,
       error,
       activeTick,
-      data: ticksProcessed,
+      data: processedTicks,
     }
   }, [pool, ticks, isTicksLoading, error])
 }
-
-
