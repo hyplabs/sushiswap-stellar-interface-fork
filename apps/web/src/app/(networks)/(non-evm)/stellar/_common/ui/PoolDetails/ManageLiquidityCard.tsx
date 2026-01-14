@@ -203,15 +203,16 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
       ),
     ) / 2n // Use half amount for estimating token0 route
   const zapMutation = useZap()
+  // Only run route queries when in zap mode and zap inputs are valid
   const { route: routeToken0, isPending: isPendingRouteToken0 } = useBestRoute({
     tokenIn: zapTokenIn,
     tokenOut: pool.token0,
-    amountIn: halfZapAmountInBigInt,
+    amountIn: isZapModeEnabled ? halfZapAmountInBigInt : 0n,
   })
   const { route: routeToken1, isPending: isPendingRouteToken1 } = useBestRoute({
     tokenIn: zapTokenIn,
     tokenOut: pool.token1,
-    amountIn: halfZapAmountInBigInt,
+    amountIn: isZapModeEnabled ? halfZapAmountInBigInt : 0n,
   })
   const removeLiquidityMutation = useRemoveLiquidity()
   const selectedPosition = useMemo(

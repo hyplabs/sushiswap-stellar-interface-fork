@@ -10,7 +10,6 @@ interface UseBestRouteParams {
   tokenIn: Token | null
   tokenOut: Token | null
   amountIn: bigint
-  enabled?: boolean
 }
 
 interface CandidateRoute {
