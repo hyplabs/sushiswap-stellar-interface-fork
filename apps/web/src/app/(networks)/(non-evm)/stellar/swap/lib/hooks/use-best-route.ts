@@ -169,7 +169,7 @@ export async function getBestRoute({
 
     // Check if tokens exist in the graph
     if (
-      !tokenGraph.has(tokenIn.contract) &&
+      !tokenGraph.has(tokenIn.contract) ||
       !tokenGraph.has(tokenOut.contract)
     ) {
       return null
