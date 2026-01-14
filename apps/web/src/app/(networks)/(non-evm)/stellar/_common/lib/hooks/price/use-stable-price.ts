@@ -36,7 +36,7 @@ export const useStablePrice = ({ token }: { token: Token | undefined }) => {
           const bestRoute = await getBestRoute({
             tokenIn: token,
             tokenOut: stableToken,
-            amountIn: 10n ** BigInt(stableToken.decimals),
+            amountIn: 10n ** BigInt(token.decimals),
             poolGraphData,
           })
           const tokenPrice = formatUnits(
