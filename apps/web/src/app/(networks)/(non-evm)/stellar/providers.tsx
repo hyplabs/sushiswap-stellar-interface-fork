@@ -64,7 +64,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               'https://assets.coingecko.com/coins/images/12271/standard/512x512_Logo_no_chop.png?1696512101',
             ],
             method: WalletConnectAllowedMethods.SIGN,
-            network: WalletNetwork.PUBLIC,
+            network: PREFERRED_NETWORK,
           }),
         ],
       })
