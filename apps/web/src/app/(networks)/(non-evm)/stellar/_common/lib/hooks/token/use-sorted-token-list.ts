@@ -8,8 +8,8 @@ import {
 
 interface Params {
   query: string
-  tokenMap: Record<string, Token> | undefined
-  balanceMap?: Record<string, string> | undefined
+  tokenMap?: Record<string, Token>
+  balanceMap?: Record<string, string>
 }
 
 export const useSortedTokenList = ({ query, tokenMap, balanceMap }: Params) => {
