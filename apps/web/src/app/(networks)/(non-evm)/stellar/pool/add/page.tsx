@@ -89,20 +89,44 @@ export default function AddPoolPage() {
   )
 
   // Check trustlines for both pool tokens
-  const { needsTrustline: needsToken0Trustline } = useNeedsTrustline(
+  const {
+    needsTrustline: needsToken0Trustline,
+    isLoading: isLoadingToken0Trustline,
+    issuer: token0ResolvedIssuer,
+  } = useNeedsTrustline(
     orderedToken0?.code || '',
-    orderedToken0?.issuer || '',
+    orderedToken0?.contract || '',
+    orderedToken0?.issuer,
   )
-  const { needsTrustline: needsToken1Trustline } = useNeedsTrustline(
+  const {
+    needsTrustline: needsToken1Trustline,
+    isLoading: isLoadingToken1Trustline,
+    issuer: token1ResolvedIssuer,
+  } = useNeedsTrustline(
     orderedToken1?.code || '',
-    orderedToken1?.issuer || '',
+    orderedToken1?.contract || '',
+    orderedToken1?.issuer,
   )
+  const isLoadingTrustlines =
+    isLoadingToken0Trustline || isLoadingToken1Trustline
+  // Use the resolved issuers from the trustline check (looked up from Horizon if not already known)
   const tokensNeedingTrustline = useMemo(() => {
-    const tokens: Token[] = []
-    if (needsToken0Trustline && orderedToken0) tokens.push(orderedToken0)
-    if (needsToken1Trustline && orderedToken1) tokens.push(orderedToken1)
+    const tokens: Array<{ code: string; issuer: string }> = []
+    if (needsToken0Trustline && orderedToken0 && token0ResolvedIssuer) {
+      tokens.push({ code: orderedToken0.code, issuer: token0ResolvedIssuer })
+    }
+    if (needsToken1Trustline && orderedToken1 && token1ResolvedIssuer) {
+      tokens.push({ code: orderedToken1.code, issuer: token1ResolvedIssuer })
+    }
     return tokens
-  }, [needsToken0Trustline, needsToken1Trustline, orderedToken0, orderedToken1])
+  }, [
+    needsToken0Trustline,
+    needsToken1Trustline,
+    orderedToken0,
+    orderedToken1,
+    token0ResolvedIssuer,
+    token1ResolvedIssuer,
+  ])
 
   const currentPrice = poolInfo
     ? calculatePriceFromSqrtPrice(poolInfo.sqrtPriceX96)
@@ -679,10 +703,12 @@ export default function AddPoolPage() {
             <Button
               fullWidth
               size="xl"
-              disabled={!canCreate || createPoolState !== 'idle'}
+              disabled={
+                !canCreate || createPoolState !== 'idle' || isLoadingTrustlines
+              }
               onClick={handleCreatePool}
             >
-              {ctaButtonText}
+              {isLoadingTrustlines ? 'Checking trustlines...' : ctaButtonText}
             </Button>
           )}
         </div>
