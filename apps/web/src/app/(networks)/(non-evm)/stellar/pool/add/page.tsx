@@ -16,6 +16,7 @@ import { useMaxPairedAmount } from '~stellar/_common/lib/hooks/pool/use-max-pair
 import { usePoolBalances } from '~stellar/_common/lib/hooks/pool/use-pool-balances'
 import { usePoolInitialized } from '~stellar/_common/lib/hooks/pool/use-pool-initialized'
 import { useTickRangeSelector } from '~stellar/_common/lib/hooks/tick/use-tick-range-selector'
+import { useNeedsTrustline } from '~stellar/_common/lib/hooks/trustline/use-trustline'
 import {
   calculatePriceFromSqrtPrice,
   encodePriceSqrt,
@@ -24,6 +25,7 @@ import {
 import type { Token } from '~stellar/_common/lib/types/token.type'
 import { FEE_TIERS } from '~stellar/_common/lib/utils/ticks'
 import { ConnectWalletButton } from '~stellar/_common/ui/ConnectWallet/ConnectWalletButton'
+import { CreateTrustlineButton } from '~stellar/_common/ui/Trustline/CreateTrustlineButton'
 import { TickRangeSelector } from '~stellar/_common/ui/TickRangeSelector/TickRangeSelector'
 import TokenSelector from '~stellar/_common/ui/token-selector/token-selector'
 import { useStellarWallet } from '~stellar/providers'
@@ -85,6 +87,22 @@ export default function AddPoolPage() {
     connectedAddress,
     orderedToken1?.contract || null,
   )
+
+  // Check trustlines for both pool tokens
+  const { needsTrustline: needsToken0Trustline } = useNeedsTrustline(
+    orderedToken0?.code || '',
+    orderedToken0?.issuer || '',
+  )
+  const { needsTrustline: needsToken1Trustline } = useNeedsTrustline(
+    orderedToken1?.code || '',
+    orderedToken1?.issuer || '',
+  )
+  const tokensNeedingTrustline = useMemo(() => {
+    const tokens: Token[] = []
+    if (needsToken0Trustline && orderedToken0) tokens.push(orderedToken0)
+    if (needsToken1Trustline && orderedToken1) tokens.push(orderedToken1)
+    return tokens
+  }, [needsToken0Trustline, needsToken1Trustline, orderedToken0, orderedToken1])
 
   const currentPrice = poolInfo
     ? calculatePriceFromSqrtPrice(poolInfo.sqrtPriceX96)
@@ -651,6 +669,12 @@ export default function AddPoolPage() {
         <div className="flex w-full flex-col gap-4">
           {!isConnected ? (
             <ConnectWalletButton fullWidth size="xl" />
+          ) : tokensNeedingTrustline.length > 0 ? (
+            <CreateTrustlineButton
+              size="xl"
+              fullWidth
+              tokens={tokensNeedingTrustline}
+            />
           ) : (
             <Button
               fullWidth

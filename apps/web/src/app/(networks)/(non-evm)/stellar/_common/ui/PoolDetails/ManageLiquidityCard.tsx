@@ -650,25 +650,34 @@ export const ManageLiquidityCard: React.FC<ManageLiquidityCardProps> = ({
                         tickRangeSelectorState={tickRangeSelectorState}
                       />
 
-                      {/* Submit Button */}
-                      <Button
-                        className="w-full"
-                        size="lg"
-                        disabled={
-                          !canAddLiquidity || addLiquidityMutation.isPending
-                        }
-                        onClick={handleAddLiquidity}
-                      >
-                        {addLiquidityMutation.isPending
-                          ? 'Adding Liquidity...'
-                          : isDependentAmountError
-                            ? 'Price Range Error'
-                            : !isTickRangeValid
-                              ? 'Adjust Tick Range'
-                              : canAddLiquidity
-                                ? 'Add Liquidity'
-                                : 'Enter Amount'}
-                      </Button>
+                      {/* Trustline check for pool tokens */}
+                      {tokensNeedingTrustline.length > 0 ? (
+                        <CreateTrustlineButton
+                          size="lg"
+                          className="w-full"
+                          tokens={tokensNeedingTrustline}
+                        />
+                      ) : (
+                        /* Submit Button */
+                        <Button
+                          className="w-full"
+                          size="lg"
+                          disabled={
+                            !canAddLiquidity || addLiquidityMutation.isPending
+                          }
+                          onClick={handleAddLiquidity}
+                        >
+                          {addLiquidityMutation.isPending
+                            ? 'Adding Liquidity...'
+                            : isDependentAmountError
+                              ? 'Price Range Error'
+                              : !isTickRangeValid
+                                ? 'Adjust Tick Range'
+                                : canAddLiquidity
+                                  ? 'Add Liquidity'
+                                  : 'Enter Amount'}
+                        </Button>
+                      )}
                     </>
                   )}
                 </>
