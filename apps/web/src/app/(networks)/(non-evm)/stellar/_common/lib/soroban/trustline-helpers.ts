@@ -170,30 +170,6 @@ export async function checkTrustlineRequired(
 }
 
 /**
- * Check if an asset requires a trustline (Classic Assets)
- * This is the sync version that only works if issuer is known.
- *
- * @deprecated Use checkTrustlineRequired for dynamic lookup
- */
-export function requiresTrustline(
-  assetCode?: string,
-  assetIssuer?: string,
-): boolean {
-  // XLM (native) never needs a trustline, regardless of how it's represented
-  if (assetCode === 'XLM' || assetCode === 'native') {
-    return false
-  }
-
-  // If there's an issuer (G... address), it's a classic asset that needs trustline
-  if (assetIssuer?.startsWith('G')) {
-    return true
-  }
-
-  // Pure Soroban tokens (C... contract with no issuer) don't need trustlines
-  return false
-}
-
-/**
  * Query Horizon API to get asset information and determine asset type
  *
  * Following the pattern:
@@ -419,69 +395,6 @@ export async function createTrustline(
     return {
       success: false,
       error: errorMessage,
-    }
-  }
-}
-
-/**
- * Check and create trustline if needed before a swap
- *
- * Determines if trustline is required based on:
- * - XLM (native): No trustline needed
- * - Pure Soroban tokens (C... contract only): No trustline needed
- * - Classic assets (with G... issuer): Trustline required
- * - SAC-wrapped classic assets (C... contract + G... issuer): Trustline required
- *
- * @returns Object with success status, whether trustline was created, and any error
- */
-export async function ensureTrustline(
-  userAddress: string,
-  assetCode: string,
-  assetIssuer: string,
-  signTransaction: (xdr: string) => Promise<string>,
-): Promise<{ success: boolean; created: boolean; error?: string }> {
-  try {
-    // Check if this asset requires a trustline (passing assetCode for XLM detection)
-    if (!requiresTrustline(assetCode, assetIssuer)) {
-      // XLM, pure Soroban token, or no issuer - no trustline needed
-      return { success: true, created: false }
-    }
-
-    // If no issuer provided, no trustline needed (pure Soroban token)
-    if (!assetIssuer || assetIssuer === '') {
-      return { success: true, created: false }
-    }
-
-    // Check if trustline already exists for this asset_code + issuer combination
-    const exists = await hasTrustline(userAddress, assetCode, assetIssuer)
-
-    if (exists) {
-      return { success: true, created: false }
-    }
-
-    // Create trustline for classic asset (including SAC-wrapped classic assets)
-    const result = await createTrustline(
-      userAddress,
-      assetCode,
-      assetIssuer,
-      signTransaction,
-    )
-
-    if (!result.success) {
-      return {
-        success: false,
-        created: false,
-        error: result.error,
-      }
-    }
-
-    return { success: true, created: true }
-  } catch (error) {
-    console.error('Error ensuring trustline:', error)
-    return {
-      success: false,
-      created: false,
-      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
