@@ -40,7 +40,7 @@ export const WalletList = () => {
                   )}
                   {/*
                     Leave space for the "Not Installed" label
-                    This is done with absolute positioning to avoid having to make changes to the shared List.MenuItem strucuture
+                    This is done with absolute positioning to avoid having to make changes to the shared List.MenuItem structure
                   */}
                   {someUninstalled && <div className="w-24" />}
                 </div>
@@ -48,7 +48,7 @@ export const WalletList = () => {
               onClick={async () => {
                 if (wallet.isAvailable) {
                   await handleConnectWallet(wallet.id)
-                } else {
+                } else if (wallet.url) {
                   window.open(wallet.url, '_blank')
                 }
               }}
